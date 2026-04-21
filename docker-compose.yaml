@@ -1,0 +1,127 @@
+
+services:
+  postgres :
+    image: postgres:18-alpine
+    container_name: cups_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init_scripts:/docker-entrypoint-initdb.d
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cups_network
+  
+  init-permissions:
+    image: ubuntu:22.04
+    volumes:
+      - ./permissions/init_permissions.sh:/init_permissions.sh
+      - shared_files:/data
+    command: ["sh", "/init_permissions.sh"]
+
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: cups_filebrowser
+    restart: always
+    user: "1000:410"
+    ports:
+      - "8080:80"
+    volumes:
+      - shared_files:/srv
+      - filebrowser_data:/database
+    depends_on:
+      init-permissions:
+        condition: service_completed_successfully
+    networks:
+      - cups_network
+
+  api:
+    build:
+      context: . 
+      dockerfile:  api/Dockerfile
+    container_name: cups_api
+    ports:
+        - 8081:8080
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-postgres}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DB_SSLMODE: disable
+    depends_on:
+      postgres:
+        condition: 'service_healthy'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cups_network
+
+  pipeline:
+    build:
+      context: . 
+      dockerfile:  processing_pipeline/Dockerfile
+    container_name: cups_pdf_pipeline
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-postgres}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DB_SSLMODE: disable
+      CUPS_SERVER_URL: cups_server:631
+      CUPS_PRINTER_NAME: PDF
+      FILE_FOLDER: '/files'
+    volumes:
+      - shared_files:/files
+    depends_on:
+      postgres:
+        condition: 'service_healthy'
+      api:
+        condition: 'service_healthy'
+      cups_server:
+        condition: 'service_healthy'
+      init-permissions:
+        condition: service_completed_successfully
+    networks:
+      - cups_network
+  
+  cups_server:
+    build:  
+      context: .
+      dockerfile: cups_server/Dockerfile
+    container_name: cups_server
+    restart: always
+    post_start:
+      - command: /bin/sh -c "/setup.sh > /tmp/hook.log 2>&1"
+    ports:
+      - "631:631"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:631 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cups_network
+    
+
+volumes:
+  postgres_data:
+  filebrowser_data:
+  shared_files:
+
+networks:
+  cups_network:
+    driver: bridge

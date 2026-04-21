@@ -1,0 +1,12 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "asyncpg>=0.31.0",
+    "fastapi>=0.136.0",
+    "uuid>=1.30",
+    "uvicorn>=0.45.0",
+]
