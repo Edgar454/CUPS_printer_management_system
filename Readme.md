@@ -55,19 +55,19 @@ https://github.com/user-attachments/assets/ce290c1f-257f-4123-ab8a-61281a1f3a6e
 
 ### API Interaction
 
-[cups_api_submit](./assets/cups_api_submit.PNG)
+![cups_api_submit](./assets/cups_api_submit.PNG)
 
 ### Worker Logs
 
-[cups_worker_logs](./assets/cups_worker_logs.PNG)
+![cups_worker_logs](./assets/cups_worker_logs.PNG)
 
 ### CUPS Interface / Status
 
-[cubs_task_status](./assets/cups_task.PNG)
+![cubs_task_status](./assets/cups_task.PNG)
 
 ### Generated Output (PDF)
 
-[cups_pdf_output](./assets/cups_output.PNG)
+![cups_pdf_output](./assets/cups_output.PNG)
 
 ---
 
