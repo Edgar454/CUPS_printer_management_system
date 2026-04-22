@@ -63,7 +63,7 @@ https://github.com/user-attachments/assets/ce290c1f-257f-4123-ab8a-61281a1f3a6e
 
 ### CUPS Interface / Status
 
-![cubs_task_status](./assets/cups_task.PNG)
+![cubs_task_status](./assets/cups_task.png)
 
 ### Generated Output (PDF)
 
