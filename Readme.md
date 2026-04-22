@@ -37,6 +37,7 @@ It introduces structure where traditional printing lacks it:
 > 📌 *A quick walkthrough of the system in action*
 
 👉 **Video demo:**
+
 https://github.com/user-attachments/assets/ce290c1f-257f-4123-ab8a-61281a1f3a6e
 
 👉 **What the demo shows:**
@@ -54,19 +55,19 @@ https://github.com/user-attachments/assets/ce290c1f-257f-4123-ab8a-61281a1f3a6e
 
 ### API Interaction
 
-*(add screenshot here)*
+[cups_api_submit](./assets/cups_api_submit.PNG)
 
 ### Worker Logs
 
-*(add screenshot here)*
+[cups_worker_logs](./assets/cups_worker_logs.PNG)
 
 ### CUPS Interface / Status
 
-*(add screenshot here)*
+[cubs_task_status](./assets/cups_task.PNG)
 
 ### Generated Output (PDF)
 
-*(add screenshot here)*
+[cups_pdf_output](./assets/cups_output.PNG)
 
 ---
 
