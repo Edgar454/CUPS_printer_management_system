@@ -10,3 +10,6 @@ RUN apt-get update && \
 COPY cups_server/setup.sh /setup.sh
 RUN chmod +x /setup.sh
 
+RUN mkdir -p /var/spool/cups-pdf && \
+    chmod 777 /var/spool/cups-pdf
+

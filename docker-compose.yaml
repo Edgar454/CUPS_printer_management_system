@@ -104,6 +104,8 @@ services:
       dockerfile: cups_server/Dockerfile
     container_name: cups_server
     restart: always
+    volumes:
+      - ./cups_server/print_output:/var/spool/cups-pdf/
     post_start:
       - command: /bin/sh -c "/setup.sh > /tmp/hook.log 2>&1"
     ports:

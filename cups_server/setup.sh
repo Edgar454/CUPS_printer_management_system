@@ -1,27 +1,31 @@
 #!/bin/sh
 set -e
 
-# wait for cups daemon
-until lpstat -r >/dev/null 2>&1; do
-  echo "Waiting for CUPS..."
+echo "Waiting for CUPS HTTP..."
+until curl -s http://localhost:631 >/dev/null 2>&1; do
   sleep 1
 done
 
-# enable remote access
-cupsctl --share-printers
-cupsctl --remote-any
+echo "Waiting for CUPS to fully initialize..."
+sleep 5
 
-# CREATE printer if missing (this is the missing piece)
-if ! lpstat -p PDF >/dev/null 2>&1; then
-  echo "Creating PDF printer..."
+echo "Configuring CUPS..."
+cupsctl --share-printers || true
+cupsctl --remote-any || true
 
-  lpadmin -p PDF -E -v cups-pdf:/ -m raw
-fi
+# Remove old printer if it exists
+lpadmin -x PDF 2>/dev/null || true
+sleep 1
 
-# configure it (always safe)
-echo "Configuring PDF printer..."
-lpadmin -p PDF -o printer-is-shared=true
-cupsenable PDF
-cupsaccept PDF
+echo "Creating PDF printer..."
+lpadmin -p PDF -E -v cups-pdf:/ -m drv:///sample.drv/generic.ppd
+
+echo "Enabling printer..."
+lpadmin -p PDF -o printer-is-shared=true || true
+cupsenable PDF || true
+cupsaccept PDF || true
+
+echo "Verifying setup..."
+lpstat -v
 
 echo "CUPS setup completed"
