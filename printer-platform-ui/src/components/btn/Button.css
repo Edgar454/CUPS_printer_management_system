@@ -1,0 +1,57 @@
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+
+  font-family: inherit;
+  transition: opacity 0.15s, transform 0.05s;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* sizes */
+.btn-small {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.btn:not(.btn-small) {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* variants */
+.btn-primary {
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+}
+
+.btn-secondary {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ddd;
+}
+
+.btn-danger {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #111;
+  border: 1px solid #e0e0e0;
+}
+
+/* interaction */
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}

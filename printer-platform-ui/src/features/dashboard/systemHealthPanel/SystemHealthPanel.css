@@ -1,0 +1,53 @@
+.systemHealthPanel {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 20px 24px;
+}
+
+.systemHealthPanel__title {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.systemHealthPanel__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.systemHealthPanel__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.systemHealthPanel__item:last-child {
+  border-bottom: none;
+}
+
+.systemHealthPanel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.systemHealthPanel__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.systemHealthPanel__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #111;
+}
+
+.systemHealthPanel__sub {
+  font-size: 11px;
+  color: #999;
+}

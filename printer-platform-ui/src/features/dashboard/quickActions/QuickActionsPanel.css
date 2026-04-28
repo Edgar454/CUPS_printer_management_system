@@ -1,0 +1,49 @@
+.quickActionsPanel {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 20px 24px;
+}
+
+.quickActionsPanel__title {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.quickActionsPanel__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.quickActionsPanel__card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.quickActionsPanel__card:hover {
+  opacity: 0.85;
+}
+
+.quickActionsPanel__icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.quickActionsPanel__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #111;
+}
+
+.quickActionsPanel__sub {
+  font-size: 11px;
+  color: #aaa;
+}

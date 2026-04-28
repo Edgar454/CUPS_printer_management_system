@@ -1,0 +1,52 @@
+.logsPanel {
+  background: #0f1117;
+  border: 1px solid #222;
+  border-radius: 14px;
+  padding: 20px 22px;
+  color: #bbb;
+}
+
+.logsPanel__header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.logsPanel__header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #eee;
+}
+
+.liveIndicator {
+  font-size: 11px;
+  color: "#22c55e";
+  fontWeight: 600;
+}
+
+.logsPanel__body {
+  height: 280px;
+  overflow-y: auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.logLine {
+  display: flex;
+  gap: 10px;
+}
+
+.time {
+  color: #555;
+  min-width: 60px;
+}
+
+.type {
+  min-width: 45px;
+  font-weight: 600;
+}
+
+.msg {
+  color: #e5e7eb;
+}

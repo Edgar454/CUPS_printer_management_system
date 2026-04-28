@@ -1,0 +1,45 @@
+/* Layout.css */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #f4f5f7;
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  overflow: hidden; 
+}
+
+
+/* main area (right side) */
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* page content */
+.layout-content {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+/* global app tweaks */
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+button:hover {
+  opacity: 0.85;
+}

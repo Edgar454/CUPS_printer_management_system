@@ -1,0 +1,11 @@
+.addPrinterModal {
+  display: flex;
+  flex-direction: column;
+}
+
+.addPrinterModal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

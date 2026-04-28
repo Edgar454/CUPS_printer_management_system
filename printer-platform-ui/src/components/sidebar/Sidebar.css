@@ -1,0 +1,147 @@
+/* Sidebar.css */
+.sidebar {
+  width: 200px;
+  background: #0f1117;
+
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding-bottom: 20px;
+
+  transition: width 0.2s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+/*Navigation*/
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  color: #888;
+  text-align: left;
+
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-item:hover {
+  background: #ffffff10;
+}
+
+.sidebar-item.active {
+  background: #3b82f620;
+  color: #3b82f6;
+}
+
+.sidebar-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar-label {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.sidebar-label.active {
+  font-weight: 600;
+}
+
+/* Logo */
+
+.sidebar-logo {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid #ffffff12;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-logo-icon {
+  width: 36px;
+  height: 36px;
+
+  background: #3b82f6;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  color: #fff;
+
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo-title {
+  font-weight: 700;
+  color: #fff;
+  font-size: 15px;
+}
+
+.sidebar-logo-subtitle {
+  font-size: 10px;
+  color: #888;
+}
+
+/* Footer */
+.sidebar-footer {
+  padding: 0 8px;
+}
+
+.sidebar-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  color: #666;
+  text-align: left;
+
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-footer-btn:hover {
+  background: #ffffff10;
+}
+
+.sidebar-footer-icon {
+  font-size: 16px;
+}
+
+.sidebar-footer-label {
+  font-size: 13px;
+}

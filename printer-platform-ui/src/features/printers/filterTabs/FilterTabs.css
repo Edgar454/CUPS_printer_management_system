@@ -1,0 +1,25 @@
+.filterTabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.filterTabs__tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  background: #fff;
+  color: #555;
+  border: 1px solid #ddd;
+
+  transition: all 0.15s ease;
+}
+
+.filterTabs__tab.active {
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+}

@@ -1,0 +1,54 @@
+.jobHistoryTable {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 20px 24px;
+}
+
+.jobHistoryTable__title {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.jobHistoryTable__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.jobHistoryTable__table th {
+  text-align: left;
+  padding: 6px 0;
+  color: #999;
+  font-weight: 500;
+  font-size: 11px;
+}
+
+.jobHistoryTable__table td {
+  padding: 10px 0;
+  border-bottom: 1px solid #f8f8f8;
+}
+
+.mono {
+  font-family: monospace;
+  color: #555;
+  font-size: 12px;
+}
+
+.fileCell {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muted {
+  color: #999;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}

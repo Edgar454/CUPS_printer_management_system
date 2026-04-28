@@ -1,0 +1,74 @@
+.recentJobsPanel {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 20px 24px;
+}
+
+.recentJobsPanel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.recentJobsPanel__header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.recentJobsPanel__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.recentJobsPanel__table thead th {
+  text-align: left;
+  padding: 6px 0;
+  color: #999;
+  font-weight: 500;
+  font-size: 11px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.recentJobsPanel__table tbody tr {
+  border-bottom: 1px solid #f8f8f8;
+}
+
+.recentJobsPanel__table td {
+  padding: 10px 0;
+}
+
+.mono {
+  font-family: monospace;
+  font-size: 12px;
+  color: #555;
+}
+
+.fileCell {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #111;
+}
+
+.muted {
+  color: #999;
+  font-size: 12px;
+}
+
+.linkButton {
+  font-size: 12px;
+  color: #3b82f6;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.bottomLink {
+  margin-top: 10px;
+}

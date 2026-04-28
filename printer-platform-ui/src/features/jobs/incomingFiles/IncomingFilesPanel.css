@@ -1,0 +1,53 @@
+.incomingFilesPanel {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.incomingFilesPanel__title {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.incomingFilesPanel__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.incomingFilesPanel__icon {
+  font-size: 22px;
+}
+
+.incomingFilesPanel__info {
+  flex: 1;
+}
+
+.incomingFilesPanel__name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.incomingFilesPanel__source {
+  font-size: 11px;
+  color: #999;
+}
+
+.incomingFilesPanel__select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #333;
+}
+
+.incomingFilesPanel__actions {
+  display: flex;
+  gap: 6px;
+}

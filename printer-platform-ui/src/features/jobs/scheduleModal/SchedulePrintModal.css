@@ -1,0 +1,48 @@
+.scheduleModal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.scheduleModal__file {
+  font-size: 13px;
+  color: #666;
+}
+
+.scheduleModal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.scheduleModal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scheduleModal__field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+}
+
+.scheduleModal__field select {
+  padding: 9px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.scheduleModal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.scheduleModal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

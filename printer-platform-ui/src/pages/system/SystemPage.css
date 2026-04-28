@@ -1,0 +1,11 @@
+.systemPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.systemPage__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
