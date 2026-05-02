@@ -4,7 +4,7 @@ import logging
 import sys
 import os
 
-from processing_pipeline.utils import get_db_pool
+from processing_pipeline.utils import get_db_pool , get_next_job, add_event, is_cancelled
 
 
 # -------------------------------------------------
@@ -26,35 +26,6 @@ logger = logging.getLogger("print-worker")
 POLL_INTERVAL = 2
 
 
-# -------------------------------------------------
-# DB functions
-# -------------------------------------------------
-
-async def get_next_job(conn):
-    return await conn.fetchrow("""
-        SELECT *
-        FROM print_jobs
-        WHERE status = 'QUEUED'
-        ORDER BY created_at
-        LIMIT 1
-        FOR UPDATE SKIP LOCKED
-    """)
-
-
-async def update_status(pool, job_id, status, error=None):
-    async with pool.acquire() as conn:
-        await conn.execute(
-            """
-            UPDATE print_jobs
-            SET status = $2,
-                error_message = $3,
-                updated_at = NOW()
-            WHERE id = $1
-            """,
-            job_id,
-            status,
-            error
-        )
 
 
 # -------------------------------------------------
@@ -66,55 +37,64 @@ async def process_job(pool):
 
     cups_server = os.getenv("CUPS_SERVER_URL", "cups_server:631")
     printer_name = os.getenv("CUPS_PRINTER_NAME", "PDF")
-    file_folder = os.getenv("FILE_FOLDER" , "/files")
+    file_folder = os.getenv("FILE_FOLDER", "/files")
 
     async with pool.acquire() as conn:
-
         job = await get_next_job(conn)
 
         if not job:
-            logger.info("📭 No queued jobs found")
+            logger.info("📭 No jobs")
             return
 
         job_id = job["id"]
-        file_path = os.path.join(file_folder , job["file_path"])
 
-        logger.info(f"📥 Job picked: {job_id} | file={file_path}")
+        # Move to PROCESSING
+        await add_event(conn, job_id, "PROCESSING_STARTED")
 
-        await update_status(pool, job_id, "PROCESSING")
+    # 🔓 connection released here
 
-        try:
-            logger.info(
-                f"🖨️ Sending job to CUPS: printer={printer_name} | server={cups_server}"
-            )
+    file_path = os.path.join(file_folder, job["file_path"])
 
-            # Run lp in a non-blocking way
-            proc = await asyncio.to_thread(
-                subprocess.run,
-                [
-                    "lp",
-                    "-h", cups_server,
-                    "-d", printer_name,
-                    file_path
-                ],
-                capture_output=True,
-                text=True
-            )
+    try:
+        # 🔹 Check cancellation BEFORE doing anything expensive
+        async with pool.acquire() as conn:
+            if await is_cancelled(conn, job_id):
+                logger.info(f"🛑 Job cancelled before processing: {job_id}")
+                return
 
-            if proc.returncode != 0:
-                raise Exception(proc.stderr)
+        # 🔹 Move to PRINTING
+        async with pool.acquire() as conn:
+            await add_event(conn, job_id, "PRINTING_STARTED")
 
-            logger.info(f"🧾 CUPS response: {proc.stdout.strip()}")
+        # 🔹 Print (blocking but outside DB)
+        proc = await asyncio.to_thread(
+            subprocess.run,
+            [
+                "lp",
+                "-h", cups_server,
+                "-d", printer_name,
+                file_path
+            ],
+            capture_output=True,
+            text=True
+        )
 
-            await update_status(pool, job_id, "COMPLETED")
+        if proc.returncode != 0:
+            raise Exception(proc.stderr)
 
-            logger.info(f"✅ Job completed: {job_id}")
+        logger.info(f"🧾 CUPS response: {proc.stdout.strip()}")
 
-        except Exception as e:
-            logger.error(f"❌ Job failed: {job_id} | error={str(e)}")
+        # 🔹 Completed
+        async with pool.acquire() as conn:
+            await add_event(conn, job_id, "COMPLETED")
 
-            await update_status(pool, job_id, "FAILED", str(e))
+        logger.info(f"✅ Job completed: {job_id}")
 
+    except Exception as e:
+        logger.error(f"❌ Job failed: {job_id} | {str(e)}")
+
+        async with pool.acquire() as conn:
+            await add_event(conn, job_id, "FAILED", error=str(e))
 
 # -------------------------------------------------
 # Worker loop

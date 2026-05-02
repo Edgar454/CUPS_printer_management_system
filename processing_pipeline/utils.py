@@ -42,3 +42,34 @@ async def get_db_pool():
     asyncpg_params = get_asyncpg_connection_params()
     pool = await asyncpg.create_pool(**asyncpg_params)
     return pool
+
+async def add_event(conn, job_id, event_type, message=None, error=None):
+    await conn.execute(
+        """
+        SELECT public.add_job_event(
+            $1, $2, NULL, $3, 'WORKER', NULL, $4
+        )
+        """,
+        job_id,
+        event_type,
+        message,
+        error
+    )
+
+async def get_next_job(conn):
+    return await conn.fetchrow("""
+        SELECT *
+        FROM print_jobs
+        WHERE status = 'QUEUED'
+           OR (status = 'SCHEDULED' AND scheduled_at <= now())
+        ORDER BY created_at
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED
+    """)
+
+async def is_cancelled(conn, job_id):
+    status = await conn.fetchval(
+        "SELECT status FROM print_jobs WHERE id = $1",
+        job_id
+    )
+    return status == "CANCELLED"
