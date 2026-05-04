@@ -38,7 +38,8 @@ async def process_job(pool):
     file_folder = os.getenv("FILE_FOLDER", "/files")
 
     async with pool.acquire() as conn:
-        job = await get_next_job(conn)
+        worker_id = f"worker-{os.getpid()}"
+        job = await get_next_job(conn, worker_id)
 
         if not job:
             logger.info("📭 No jobs")
@@ -46,6 +47,7 @@ async def process_job(pool):
 
         job_id = job["id"]
         filename = job["file_name"]
+        retry_count = job["retry_count"]
         printer_id = job["printer_id"]
         printer_name = await get_printer_name(conn, printer_id)
 
@@ -86,7 +88,10 @@ async def process_job(pool):
         logger.error(f"❌ Job failed: {job_id} | {str(e)}")
 
         async with pool.acquire() as conn:
-            await add_event(conn, job_id, "FAILED", printer_id=printer_id, error=str(e))
+            if retry_count >= 3:
+                await add_event(conn, job_id, "FAILED", printer_id=printer_id, error=str(e) )
+            else:
+                await add_event(conn, job_id, "RETRY", printer_id=printer_id, error=str(e) , locked_until= (datetime.utcnow() + timedelta(minutes=5)) )
 
 # -------------------------------------------------
 # Worker loop

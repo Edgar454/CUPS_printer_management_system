@@ -56,30 +56,37 @@ def get_cups_conn():
     cups.setPasswordCB(lambda prompt: os.getenv("CUPS_PASSWORD"))
     return conn
 
-async def add_event(conn, job_id, event_type,printer_id=None, message=None, error=None):
+async def add_event(conn, job_id, event_type,printer_id=None, message=None, error=None , locked_until=None):
     await conn.execute(
         """
         SELECT public.add_job_event(
-            $1, $2,'WORKER',$3 ,$4, NULL, $5
+            $1, $2,'WORKER',$3 ,$4, NULL, $5, $6
         )
         """,
         job_id,
         event_type,
         printer_id,
         message,
-        error
+        error,
+        locked_until
     )
 
-async def get_next_job(conn):
+async def get_next_job(conn , worker_id):
     return await conn.fetchrow("""
-        SELECT *
-        FROM public.print_jobs
-        WHERE status = 'QUEUED'
-           OR (status = 'SCHEDULED' AND scheduled_at <= now())
-        ORDER BY created_at
-        LIMIT 1
-        FOR UPDATE SKIP LOCKED
-    """)
+        UPDATE public.print_jobs
+        SET locked_by = $1,
+            locked_at = NOW(),
+            locked_until = NOW() + INTERVAL '5 minutes'
+        WHERE id = (
+            SELECT id FROM public.print_jobs
+            WHERE (status = 'QUEUED' OR (status = 'SCHEDULED' AND scheduled_at <= NOW()))
+                AND (locked_until IS NULL OR locked_until < NOW())
+            ORDER BY created_at
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+        )
+        RETURNING *;
+    """ , worker_id)
 
 async def is_cancelled(conn, job_id):
     status = await conn.fetchval(
