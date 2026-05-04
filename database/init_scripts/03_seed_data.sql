@@ -22,4 +22,5 @@ INSERT INTO job_state_transitions VALUES
     ('QUEUED', 'CANCELLED'),
     ('PROCESSING', 'CANCELLED'),
     ('PRINTING', 'CANCELLED'),
+    ('ANY','QUEUED'), -- allow retry from any state
     ('ANY', 'CANCELLED'); -- allow cancellation from any state

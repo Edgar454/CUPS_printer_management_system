@@ -2,6 +2,8 @@ import asyncio
 import logging
 import sys
 import os
+import cups
+from datetime import datetime, timedelta
 
 from processing_pipeline.utils import (
     get_db_pool , get_next_job, add_event, is_cancelled , get_printer_name , get_cups_conn

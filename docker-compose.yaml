@@ -8,6 +8,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      API_PASSWORD: ${API_PASSWORD:-api_password}
+      POSTGRES_EXPORTER_PASSWORD: ${POSTGRES_EXPORTER_PASSWORD:-exporter_password}
+      WORKER_PASSWORD: ${PIPELINE_PASSWORD:-pipeline_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init_scripts:/docker-entrypoint-initdb.d
@@ -55,8 +58,8 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${POSTGRES_DB:-postgres}
-      DB_USER: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DB_USER: ${API_USER:-api_user}
+      DB_PASSWORD: ${API_PASSWORD:-api_password}
       DB_SSLMODE: disable
       CUPS_SERVER_URL: cups_server:631
       CUPS_USER: ${CUPS_USER:-admin}
@@ -84,8 +87,8 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${POSTGRES_DB:-postgres}
-      DB_USER: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DB_USER: ${PIPELINE_USER:-pipeline_worker}
+      DB_PASSWORD: ${PIPELINE_PASSWORD:-pipeline_password}
       DB_SSLMODE: disable
       CUPS_SERVER_URL: cups_server:631
       CUPS_USER: ${CUPS_USER:-admin}
@@ -147,3 +150,6 @@ volumes:
 networks:
   cups_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24

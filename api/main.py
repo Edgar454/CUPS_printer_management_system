@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 from fastapi import FastAPI 
@@ -35,9 +36,13 @@ app.include_router(system.router)
 # Optional CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
-    allow_methods=["*"],
+    allow_origins=[
+        "http://frontend:3000",   # Allow local development frontend    
+        "http://filebrowser:8080",  # Allow filebrowser to access the API     
+        "http://172.28.0.0/24", # Allow the entire internal network (adjust as needed)        
+        os.getenv("FRONTEND_URL", ""),
+    ],
+    allow_methods=["GET", "POST", "DELETE", "PUT", "PATCH"],
     allow_headers=["*"],
 )
-
 

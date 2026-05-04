@@ -62,6 +62,7 @@ CREATE TABLE public.print_jobs (
 
     locked_by TEXT,
     locked_at TIMESTAMPTZ,
+    locked_until TIMESTAMPTZ,
 
     error_message TEXT,
 

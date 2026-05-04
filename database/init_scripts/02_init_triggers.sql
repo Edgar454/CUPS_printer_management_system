@@ -8,7 +8,8 @@ CREATE OR REPLACE FUNCTION public.add_job_event(
     p_printer_id INTEGER DEFAULT NULL,
     p_message TEXT DEFAULT NULL,
     p_client_request_id TEXT DEFAULT NULL,
-    p_error TEXT DEFAULT NULL
+    p_error TEXT DEFAULT NULL ,
+    p_locked_until TIMESTAMPTZ DEFAULT NULL
 )
 RETURNS VOID AS $$
 DECLARE
@@ -96,7 +97,9 @@ BEGIN
             WHEN p_event_type = 'RETRY' THEN retry_count + 1
             ELSE retry_count
         END,
+        locked_until= p_locked_until,
         updated_at = NOW()
+
     WHERE id = p_job_id;
 
 END;
