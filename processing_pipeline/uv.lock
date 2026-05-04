@@ -76,7 +76,17 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "asyncpg" },
+    { name = "pycups" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "asyncpg", specifier = ">=0.31.0" }]
+requires-dist = [
+    { name = "asyncpg", specifier = ">=0.31.0" },
+    { name = "pycups", specifier = ">=2.0.4" },
+]
+
+[[package]]
+name = "pycups"
+version = "2.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/c4/b077f0422cd031e4f3a47c75ce0bcf77f2f2e5bf3648f6945a4d09fd44a5/pycups-2.0.4.tar.gz", hash = "sha256:843e385c1dbf694996ca84ef02a7f30c28376035588f5fbeacd6bae005cf7c8d", size = 65105, upload-time = "2024-04-18T06:20:40.589Z" }

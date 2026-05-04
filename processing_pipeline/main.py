@@ -1,10 +1,11 @@
 import asyncio
-import subprocess
 import logging
 import sys
 import os
 
-from processing_pipeline.utils import get_db_pool , get_next_job, add_event, is_cancelled , get_printer_name
+from processing_pipeline.utils import (
+    get_db_pool , get_next_job, add_event, is_cancelled , get_printer_name , get_cups_conn
+)
 
 
 # -------------------------------------------------
@@ -34,8 +35,6 @@ POLL_INTERVAL = 2
 
 async def process_job(pool):
     logger.info("🔄 Worker cycle started")
-
-    cups_server = os.getenv("CUPS_SERVER_URL", "cups_server:631")
     file_folder = os.getenv("FILE_FOLDER", "/files")
 
     async with pool.acquire() as conn:
@@ -46,6 +45,7 @@ async def process_job(pool):
             return
 
         job_id = job["id"]
+        filename = job["file_name"]
         printer_id = job["printer_id"]
         printer_name = await get_printer_name(conn, printer_id)
 
@@ -68,22 +68,13 @@ async def process_job(pool):
             await add_event(conn, job_id, "PRINTING_STARTED", printer_id=printer_id)
 
         # 🔹 Print (blocking but outside DB)
-        proc = await asyncio.to_thread(
-            subprocess.run,
-            [
-                "lp",
-                "-h", cups_server,
-                "-d", printer_name,
-                file_path
-            ],
-            capture_output=True,
-            text=True
-        )
+        try:
+            cups_conn = get_cups_conn()
+            response = cups_conn.printFile(printer_name, file_path, filename, {})
+        except cups.IPPError as e:
+            raise Exception(str(e))
 
-        if proc.returncode != 0:
-            raise Exception(proc.stderr)
-
-        logger.info(f"🧾 CUPS response: {proc.stdout.strip()}")
+        logger.info(f"🧾 CUPS response: {response}")
 
         # 🔹 Completed
         async with pool.acquire() as conn:

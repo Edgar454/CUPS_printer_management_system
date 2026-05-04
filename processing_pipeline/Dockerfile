@@ -6,6 +6,8 @@ WORKDIR /app
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
+        libcups2-dev \
+        build-essential \
         ca-certificates \
         postgresql-client \
         cups-client \

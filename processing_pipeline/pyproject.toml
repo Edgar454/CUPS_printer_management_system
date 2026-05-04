@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "asyncpg>=0.31.0",
+    "pycups>=2.0.4",
 ]

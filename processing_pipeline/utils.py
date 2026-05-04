@@ -1,5 +1,6 @@
 import os
 import ssl
+import cups
 import asyncpg
 
 def get_asyncpg_connection_params():
@@ -42,6 +43,18 @@ async def get_db_pool():
     asyncpg_params = get_asyncpg_connection_params()
     pool = await asyncpg.create_pool(**asyncpg_params)
     return pool
+
+def get_cups_conn():
+    url = os.getenv("CUPS_SERVER_URL", "localhost:631")
+    if ":" in url:
+        host, port = url.rsplit(":", 1)
+        conn = cups.Connection(host=host, port=int(port))
+    else:
+        conn = cups.Connection(host=url)
+
+    cups.setUser(os.getenv("CUPS_USER"))
+    cups.setPasswordCB(lambda prompt: os.getenv("CUPS_PASSWORD"))
+    return conn
 
 async def add_event(conn, job_id, event_type,printer_id=None, message=None, error=None):
     await conn.execute(
