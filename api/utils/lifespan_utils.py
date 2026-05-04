@@ -1,5 +1,6 @@
 import os
 import ssl
+import cups
 
 def get_asyncpg_connection_params():
         """
@@ -36,3 +37,25 @@ def get_asyncpg_connection_params():
             'min_size': int(os.getenv('DB_POOL_MIN', 5)),
             'max_size': int(os.getenv('DB_POOL_MAX', 10)),
         }
+
+
+def create_cups_connection():
+    url = os.getenv("CUPS_SERVER_URL", "localhost:631")
+    user = os.getenv("CUPS_USER", "root")
+    password = os.getenv("CUPS_PASSWORD", "")
+
+    cups.setUser(user)
+    
+    # This form is more reliable than a lambda for blocking admin calls
+    def password_cb(prompt):
+        return password
+    
+    cups.setPasswordCB(password_cb)
+
+    if ":" in url:
+        host, port = url.rsplit(":", 1)
+        conn = cups.Connection(host=host, port=int(port))
+    else:
+        conn = cups.Connection(host=url)
+
+    return conn

@@ -1,6 +1,7 @@
+import os
 import asyncpg
 import logging
-from api.utils.lifespan_utils import get_asyncpg_connection_params
+from api.utils.lifespan_utils import get_asyncpg_connection_params , create_cups_connection
 from api.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -12,6 +13,8 @@ async def lifespan(app):
         # PostgreSQL pool
         asyncpg_params = get_asyncpg_connection_params()
         app.state.pool = await asyncpg.create_pool(**asyncpg_params)
+        # CUPS connection
+        app.state.cups_conn = create_cups_connection()
         # Settings
         app.state.settings = Settings()  
 
@@ -27,3 +30,5 @@ async def lifespan(app):
 
         if hasattr(app.state, "pool"):
             await app.state.pool.close()
+        if hasattr(app.state, "cups_conn"):
+            app.state.cups_conn.close()

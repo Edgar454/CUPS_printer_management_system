@@ -41,6 +41,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "asyncpg" },
     { name = "fastapi" },
+    { name = "pycups" },
     { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "uuid" },
@@ -51,6 +52,7 @@ dependencies = [
 requires-dist = [
     { name = "asyncpg", specifier = ">=0.31.0" },
     { name = "fastapi", specifier = ">=0.136.0" },
+    { name = "pycups" },
     { name = "pydantic-settings", specifier = ">=2.14.0" },
     { name = "python-multipart", specifier = ">=0.0.27" },
     { name = "uuid", specifier = ">=1.30" },
@@ -191,6 +193,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/22/12/2948fbe5513d06216
 wheels = [
     { url = "https://files.pythonhosted.org/packages/53/b2/acc33950394b3becb2b664741a0c0889c7ef9f9ffbfa8d47eddb53a50abd/idna-3.12-py3-none-any.whl", hash = "sha256:60ffaa1858fac94c9c124728c24fcde8160f3fb4a7f79aa8cdd33a9d1af60a67", size = 68634, upload-time = "2026-04-21T13:32:47.403Z" },
 ]
+
+[[package]]
+name = "pycups"
+version = "2.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/96/c4/b077f0422cd031e4f3a47c75ce0bcf77f2f2e5bf3648f6945a4d09fd44a5/pycups-2.0.4.tar.gz", hash = "sha256:843e385c1dbf694996ca84ef02a7f30c28376035588f5fbeacd6bae005cf7c8d", size = 65105, upload-time = "2024-04-18T06:20:40.589Z" }
 
 [[package]]
 name = "pydantic"

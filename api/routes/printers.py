@@ -1,3 +1,4 @@
+import asyncio
 from uuid import UUID
 from fastapi import APIRouter, status, Depends, Request , HTTPException
 from fastapi.responses import JSONResponse
@@ -10,9 +11,9 @@ from api.models.printers.create_printer_request import CreatePrinterRequest
 from api.models.printers.printer_test_response import PrinterTestResponse
 from api.models.printers.diagnose_printer_response import PrinterDiagnosisResponse
 
-from api.utils.route_utils import get_db_pool , get_settings
+from api.utils.route_utils import get_db_pool , get_settings  , get_cups_conn
+from api.utils.lifespan_utils import create_cups_connection
 
-import subprocess
 import logging
 
 router = APIRouter(prefix="/printers", tags=["printers"])
@@ -24,9 +25,10 @@ async def get_printers(pool=Depends(get_db_pool)):
     try:
         rows = await pool.fetch(GET_ALL_PRINTERS_QUERY)
         return [Printer(**dict(r)) for r in rows]
-    except Exception as e:
+    except Exception:
         logger.exception("Error fetching printers")
         raise HTTPException(status_code=500, detail="Internal server error")
+
 
 @router.get("/{name}", response_model=Printer)
 async def get_printer(name: str, pool=Depends(get_db_pool)):
@@ -37,135 +39,129 @@ async def get_printer(name: str, pool=Depends(get_db_pool)):
 
     return Printer(**dict(row))
 
+
 @router.post("/", response_model=Printer)
-async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool) , settings=Depends(get_settings)):
+async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool)):
     async with pool.acquire() as conn:
         try:
-            # 1. Insert as CREATING
             printer = await conn.fetchrow(ADD_PRINTER_QUERY, payload.name, payload.cups_uri, "OFFLINE")
-
         except Exception:
             raise HTTPException(400, "Printer already exists")
 
-    # 2. Try to create in CUPS (outside transaction)
+    
+    def _add_printer(payload):  
+        cups_conn = create_cups_connection()
+        logger.info("CUPS: addPrinter")
+        cups_conn.addPrinter(name=payload.name, device=payload.cups_uri)
+
+        logger.info("CUPS: enablePrinter")
+        cups_conn.enablePrinter(payload.name)
+
+        logger.info("CUPS: acceptJobs")
+        cups_conn.acceptJobs(payload.name)
+
+        logger.info("CUPS: getPrinterAttributes")
+        cups_conn.getPrinterAttributes(payload.name)
+        return "ONLINE"
+
     try:
-        subprocess.run([
-            "lpadmin",
-            "-h", settings.CUPS_SERVER_URL,
-            "-p", payload.name,
-            "-E",
-            "-v", payload.cups_uri,
-            "-m", "everywhere"
-        ], check=True)
-
-        # 3. Validate printer
-        subprocess.run(["lpstat", "-p", payload.name], check=True)
-
-        status = "ONLINE"
-
-    except subprocess.CalledProcessError:
+        status = await asyncio.wait_for(
+            asyncio.to_thread(_add_printer, payload),
+            timeout=10
+        )
+    except asyncio.TimeoutError:
+        logger.error("CUPS addPrinter timed out")
         status = "ERROR"
 
-    # 4. Update DB
+
+    except Exception as e:
+        logger.exception("CUPS addPrinter failed")
+        status = "ERROR"
+
     async with pool.acquire() as conn:
         await conn.execute(UPDATE_PRINTER_STATUS_QUERY, status, payload.name)
 
     return {**dict(printer), "status": status}
 
 
-
-@router.post("/printers/{name}/test" , response_model=PrinterTestResponse)
-async def test_printer(name: str, pool=Depends(get_db_pool) , settings=Depends(get_settings)):
+@router.post("/printers/{name}/test", response_model=PrinterTestResponse)
+async def test_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings), cups_conn=Depends(get_cups_conn)):
     try:
         async with pool.acquire() as conn:
-            printer = await conn.fetchrow(
-                GET_PRINTER_QUERY,
-                name
-            )
+            printer = await conn.fetchrow(GET_PRINTER_QUERY, name)
 
             if not printer:
                 raise HTTPException(status_code=404, detail="Printer not found")
 
             name = printer["name"]
 
-            result = subprocess.run(
-                ["lpstat", "-h", settings.CUPS_SERVER_URL, "-p", name],
-                capture_output=True,
-                text=True
-            )
+            try:
+                attrs = cups_conn.getPrinterAttributes(name)
+                status = "ONLINE"
+                output = str(attrs)
+            except Exception as e:
+                status = "ERROR"
+                output = str(e)
 
-            status = "ONLINE" if result.returncode == 0 else "ERROR"
-
-            await conn.execute(
-                UPDATE_PRINTER_STATUS_QUERY,
-                status, name
-            )
+            await conn.execute(UPDATE_PRINTER_STATUS_QUERY, status, name)
 
             return {
                 "printer": name,
                 "status": status,
-                "output": result.stdout or result.stderr
+                "output": output
             }
 
     except Exception:
         logger.exception("Printer test failed")
         raise HTTPException(status_code=500, detail="Printer test failed")
 
+
 @router.get("/printers/{name}/diagnose", response_model=PrinterDiagnosisResponse)
-async def diagnose_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings)):
+async def diagnose_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings) , cups_conn=Depends(get_cups_conn)):
     try:
         async with pool.acquire() as conn:
-            printer = await conn.fetchrow(
-                GET_PRINTER_QUERY,
-                name
-            )
+            printer = await conn.fetchrow(GET_PRINTER_QUERY, name)
 
             if not printer:
                 raise HTTPException(status_code=404, detail="Printer not found")
 
             name = printer["name"]
 
-            result = subprocess.run(
-                ["lpstat", "-h", settings.CUPS_SERVER_URL, "-l", "-p", name],
-                capture_output=True,
-                text=True
-            )
+            attrs = cups_conn.getPrinterAttributes(name)
 
             return {
                 "printer": name,
-                "details": result.stdout or result.stderr
+                "details": str(attrs)
             }
 
     except Exception:
         logger.exception("Diagnose failed")
         raise HTTPException(status_code=500, detail="Diagnose failed")
 
+
 @router.delete("/{name}")
-async def delete_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings)):
+async def delete_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings) ):
     async with pool.acquire() as conn:
-        printer = await conn.fetchrow(
-            GET_PRINTER_QUERY,
-            name
-        )
+        printer = await conn.fetchrow(GET_PRINTER_QUERY, name)
 
         if not printer:
             raise HTTPException(404, "Printer not found")
 
     printer_name = printer["name"]
 
-    # 1. Try removing from CUPS
     try:
-        subprocess.run(
-            ["lpadmin", "-h", settings.CUPS_SERVER_URL, "-x", printer_name],
-            check=True
-        )
-    except subprocess.CalledProcessError as e:
+        logger.info(f"Deleting printer {printer_name} from CUPS")
+        def _delete_printer(printer_name):
+            cups_conn = create_cups_connection()
+            cups_conn.deletePrinter(printer_name)
+        await asyncio.to_thread(_delete_printer, printer_name)
+        logger.info(f"Printer {printer_name} deleted from CUPS successfully")
+    except Exception as e:
         raise HTTPException(
             500,
             f"Failed to delete printer from CUPS: {e}"
         )
 
-    # 2. Delete from DB
     async with pool.acquire() as conn:
         await conn.execute(DELETE_PRINTER_QUERY, name)
 

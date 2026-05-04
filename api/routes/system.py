@@ -6,7 +6,7 @@ from api.utils.queries import (
 )
 from api.models.system.worker_status import WorkerStatus
 from api.models.system.system_stats_response import SystemStats
-from api.utils.route_utils import get_db_pool , get_settings
+from api.utils.route_utils import get_db_pool , get_settings , get_cups_conn
 
 import subprocess
 import logging
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/health")
-async def health_check(pool=Depends(get_db_pool), settings=Depends(get_settings)):
+async def health_check(pool=Depends(get_db_pool), settings=Depends(get_settings), cups_conn=Depends(get_cups_conn)):
     try:
         checks = {
             "database": False,
@@ -30,23 +30,23 @@ async def health_check(pool=Depends(get_db_pool), settings=Depends(get_settings)
                 await conn.execute("SELECT 1;")
             checks["database"] = True
             logger.info("Database connection successful")
-        except Exception as e:
+        except Exception:
             logger.exception("Database connection failed")
             pass
 
         # CUPS check
         try:
             logger.info("Checking CUPS server health...")
-            result = subprocess.run(
-                ["lpstat", "-h", settings.CUPS_SERVER_URL, "-r"],
-                capture_output=True,
-                text=True
-            )
-            checks["cups"] = "scheduler is running" in result.stdout.lower()
-            logger.info(f"CUPS server is {'healthy' if checks['cups'] else 'unhealthy'}")
-        except Exception as e:
+            server_info = cups_conn.adminGetServerSettings()
+            # If we can fetch settings, server is reachable
+            checks["cups"] = True
+            logger.info("CUPS server is healthy")
+        except cups.IPPError:
+            checks["cups"] = False
             logger.exception("CUPS server health check failed")
-            pass
+        except Exception:
+            checks["cups"] = False
+            logger.exception("CUPS server health check failed")
 
         status = "ok" if all(checks.values()) else "degraded"
 
@@ -55,7 +55,7 @@ async def health_check(pool=Depends(get_db_pool), settings=Depends(get_settings)
             "checks": checks
         }
 
-    except Exception as e:
+    except Exception:
         logger.exception("Health check failed")
         raise HTTPException(status_code=503, detail="System unhealthy")
 

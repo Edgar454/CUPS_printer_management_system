@@ -59,6 +59,8 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DB_SSLMODE: disable
       CUPS_SERVER_URL: cups_server:631
+      CUPS_USER: ${CUPS_USER:-admin}
+      CUPS_PASSWORD: ${CUPS_PASSWORD:-admin}
       FILE_FOLDER: /files
     volumes:
       - shared_files:/files
@@ -86,6 +88,8 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DB_SSLMODE: disable
       CUPS_SERVER_URL: cups_server:631
+      CUPS_USER: ${CUPS_USER:-admin}
+      CUPS_PASSWORD: ${CUPS_PASSWORD:-admin}
       FILE_FOLDER: '/files'
     volumes:
       - shared_files:/files
@@ -118,6 +122,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - cups_network
+  
+  dummy_printer:
+    build:
+      context: .
+      dockerfile: dummy_printer/Dockerfile
+    container_name: dummy_printer
+    volumes:
+      - ./dummy_printer/jobs:/jobs
+    restart: always
+    ports:
+      - "8631:8631"
     networks:
       - cups_network
     
