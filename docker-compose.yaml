@@ -77,6 +77,19 @@ services:
       retries: 10
     networks:
       - cups_network
+  
+  frontend:
+    build:
+      context: . 
+      dockerfile:  printer-platform-ui/Dockerfile
+    container_name: cups_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: 'service_healthy'
+    networks:
+      - cups_network
 
   pipeline:
     build:

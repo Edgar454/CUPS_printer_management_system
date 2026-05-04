@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 import { SystemStatusGrid } from "@/features/system/status/SystemStatusGrid";
 import { LiveLogsPanel } from "@/features/system/logs/LiveLogsPanel";

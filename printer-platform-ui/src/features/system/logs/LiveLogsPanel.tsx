@@ -1,15 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import "./LiveLogsPanel.css";
 
-const types = ["INFO", "INFO", "INFO", "WARN"];
-
-const msgs = [
-  "Worker heartbeat OK",
-  "Job queue checked",
-  "CUPS ping OK",
-  "Slow response from Canon printer",
-  "DB connection pool healthy",
-];
 
 export function LiveLogsPanel({ logs, setLogs }: any) {
   const logRef = useRef<HTMLDivElement>(null);
@@ -53,7 +44,7 @@ export function LiveLogsPanel({ logs, setLogs }: any) {
       </div>
 
       <div ref={logRef} className="logsPanel__body">
-        {logs.map((l, i) => (
+        {logs.map((l: any, i: number) => (
           <div key={i} className="logLine">
             <span className="time">{l.time}</span>
             <span className="type" style={{ color: color[l.type] }}>
