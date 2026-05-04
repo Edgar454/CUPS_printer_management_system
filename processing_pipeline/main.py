@@ -4,7 +4,7 @@ import logging
 import sys
 import os
 
-from processing_pipeline.utils import get_db_pool , get_next_job, add_event, is_cancelled
+from processing_pipeline.utils import get_db_pool , get_next_job, add_event, is_cancelled , get_printer_name
 
 
 # -------------------------------------------------
@@ -36,7 +36,6 @@ async def process_job(pool):
     logger.info("🔄 Worker cycle started")
 
     cups_server = os.getenv("CUPS_SERVER_URL", "cups_server:631")
-    printer_name = os.getenv("CUPS_PRINTER_NAME", "PDF")
     file_folder = os.getenv("FILE_FOLDER", "/files")
 
     async with pool.acquire() as conn:
@@ -47,9 +46,11 @@ async def process_job(pool):
             return
 
         job_id = job["id"]
+        printer_id = job["printer_id"]
+        printer_name = await get_printer_name(conn, printer_id)
 
         # Move to PROCESSING
-        await add_event(conn, job_id, "PROCESSING_STARTED")
+        await add_event(conn, job_id, "PROCESSING_STARTED", printer_id=printer_id)
 
     # 🔓 connection released here
 
@@ -64,7 +65,7 @@ async def process_job(pool):
 
         # 🔹 Move to PRINTING
         async with pool.acquire() as conn:
-            await add_event(conn, job_id, "PRINTING_STARTED")
+            await add_event(conn, job_id, "PRINTING_STARTED", printer_id=printer_id)
 
         # 🔹 Print (blocking but outside DB)
         proc = await asyncio.to_thread(
@@ -86,7 +87,7 @@ async def process_job(pool):
 
         # 🔹 Completed
         async with pool.acquire() as conn:
-            await add_event(conn, job_id, "COMPLETED")
+            await add_event(conn, job_id, "COMPLETED", printer_id=printer_id)
 
         logger.info(f"✅ Job completed: {job_id}")
 
@@ -94,7 +95,7 @@ async def process_job(pool):
         logger.error(f"❌ Job failed: {job_id} | {str(e)}")
 
         async with pool.acquire() as conn:
-            await add_event(conn, job_id, "FAILED", error=str(e))
+            await add_event(conn, job_id, "FAILED", printer_id=printer_id, error=str(e))
 
 # -------------------------------------------------
 # Worker loop

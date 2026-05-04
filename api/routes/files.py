@@ -1,6 +1,9 @@
 import uuid
 import shutil
+from pathlib import Path
 import os
+
+
 
 from fastapi import APIRouter, status, Depends, Request , HTTPException
 from fastapi import UploadFile, File
@@ -8,16 +11,18 @@ from fastapi.responses import JSONResponse
 
 import logging
 
+from api.utils.route_utils import  get_settings
+
 router = APIRouter(prefix="/files", tags=["files"])
 logger = logging.getLogger(__name__)
 
-FILES_BASE_PATH = os.getenv("FILES_BASE_PATH", "/tmp/cups_files")
+
 
 @router.get("/", response_model=list[str])
-async def list_files(limit: int = 100, offset: int = 0):
+async def list_files(limit: int = 100, offset: int = 0, settings=Depends(get_settings)):
     try:
         files = [
-            f for f in os.listdir(FILES_BASE_PATH)
+            f for f in os.listdir(settings.FILE_FOLDER)
             if f.endswith(".pdf")
         ]
         return files[offset:offset+limit]
@@ -25,24 +30,28 @@ async def list_files(limit: int = 100, offset: int = 0):
         logger.exception("Error listing files")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), settings=Depends(get_settings)):
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF allowed")
+
+    original_name = Path(file.filename).name  
+    file_path = Path(settings.FILE_FOLDER) / original_name
+
+    # avoid overwrite
+    if file_path.exists():
+        raise HTTPException(status_code=409, detail="File already exists")
+
     try:
-        if file.content_type != "application/pdf":
-            raise HTTPException(status_code=400, detail="Only PDF allowed")
-
-        file_id = str(uuid.uuid4())
-        filename = f"{file_id}.pdf"
-        file_path = os.path.join(FILES_BASE_PATH, filename)
-
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-
-        return {
-            "file_name": filename,
-            "file_path": file_path
-        }
-
-    except Exception as e:
+    except Exception:
         logger.exception("Upload failed")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Upload failed")
+
+    return {
+        "original_name": original_name,
+        "file_path": str(file_path)
+    }

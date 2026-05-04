@@ -10,14 +10,13 @@ from api.models.printers.create_printer_request import CreatePrinterRequest
 from api.models.printers.printer_test_response import PrinterTestResponse
 from api.models.printers.diagnose_printer_response import PrinterDiagnosisResponse
 
+from api.utils.route_utils import get_db_pool , get_settings
+
 import subprocess
 import logging
 
 router = APIRouter(prefix="/printers", tags=["printers"])
 logger = logging.getLogger(__name__)
-
-def get_db_pool(request: Request):
-    return request.app.state.pool
 
 
 @router.get("/", response_model=list[Printer])
@@ -39,7 +38,7 @@ async def get_printer(name: str, pool=Depends(get_db_pool)):
     return Printer(**dict(row))
 
 @router.post("/", response_model=Printer)
-async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool)):
+async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool) , settings=Depends(get_settings)):
     async with pool.acquire() as conn:
         try:
             # 1. Insert as CREATING
@@ -52,6 +51,7 @@ async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool
     try:
         subprocess.run([
             "lpadmin",
+            "-h", settings.CUPS_SERVER_URL,
             "-p", payload.name,
             "-E",
             "-v", payload.cups_uri,
@@ -75,7 +75,7 @@ async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool
 
 
 @router.post("/printers/{name}/test" , response_model=PrinterTestResponse)
-async def test_printer(name: str, pool=Depends(get_db_pool)):
+async def test_printer(name: str, pool=Depends(get_db_pool) , settings=Depends(get_settings)):
     try:
         async with pool.acquire() as conn:
             printer = await conn.fetchrow(
@@ -89,7 +89,7 @@ async def test_printer(name: str, pool=Depends(get_db_pool)):
             name = printer["name"]
 
             result = subprocess.run(
-                ["lpstat", "-p", name],
+                ["lpstat", "-h", settings.CUPS_SERVER_URL, "-p", name],
                 capture_output=True,
                 text=True
             )
@@ -112,7 +112,7 @@ async def test_printer(name: str, pool=Depends(get_db_pool)):
         raise HTTPException(status_code=500, detail="Printer test failed")
 
 @router.get("/printers/{name}/diagnose", response_model=PrinterDiagnosisResponse)
-async def diagnose_printer(name: str, pool=Depends(get_db_pool)):
+async def diagnose_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings)):
     try:
         async with pool.acquire() as conn:
             printer = await conn.fetchrow(
@@ -126,7 +126,7 @@ async def diagnose_printer(name: str, pool=Depends(get_db_pool)):
             name = printer["name"]
 
             result = subprocess.run(
-                ["lpstat", "-l", "-p", name],
+                ["lpstat", "-h", settings.CUPS_SERVER_URL, "-l", "-p", name],
                 capture_output=True,
                 text=True
             )
@@ -141,7 +141,7 @@ async def diagnose_printer(name: str, pool=Depends(get_db_pool)):
         raise HTTPException(status_code=500, detail="Diagnose failed")
 
 @router.delete("/{name}")
-async def delete_printer(name: str, pool=Depends(get_db_pool)):
+async def delete_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings)):
     async with pool.acquire() as conn:
         printer = await conn.fetchrow(
             GET_PRINTER_QUERY,
@@ -156,7 +156,7 @@ async def delete_printer(name: str, pool=Depends(get_db_pool)):
     # 1. Try removing from CUPS
     try:
         subprocess.run(
-            ["lpadmin", "-x", printer_name],
+            ["lpadmin", "-h", settings.CUPS_SERVER_URL, "-x", printer_name],
             check=True
         )
     except subprocess.CalledProcessError as e:

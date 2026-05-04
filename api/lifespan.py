@@ -1,6 +1,7 @@
 import asyncpg
 import logging
 from api.utils.lifespan_utils import get_asyncpg_connection_params
+from api.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,8 @@ async def lifespan(app):
         # PostgreSQL pool
         asyncpg_params = get_asyncpg_connection_params()
         app.state.pool = await asyncpg.create_pool(**asyncpg_params)
+        # Settings
+        app.state.settings = Settings()  
 
         logger.info("✅ App initialized successfully")
         yield

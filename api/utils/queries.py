@@ -18,9 +18,8 @@ new_job AS (
     )
     SELECT
         gen_random_uuid(),
-        $2, $3, $4,
-        $5,
-        $6,
+        $2, $3, $4,$5::timestamptz,
+        'API',
         CASE WHEN $5 IS NULL THEN 'QUEUED' ELSE 'SCHEDULED' END
     WHERE NOT EXISTS (SELECT 1 FROM existing)
     RETURNING id, printer_id
@@ -30,30 +29,25 @@ target_job AS (
     UNION ALL
     SELECT job_id AS id, NULL AS printer_id FROM existing
     LIMIT 1
+),
+event_insert AS (
+    SELECT public.add_job_event(
+        t.id,
+        CASE WHEN $5 IS NULL THEN 'CREATED' ELSE 'SCHEDULED' END,
+        'API',
+        t.printer_id,
+        'Job created via API',
+        $1,
+        NULL
+    )
+    FROM target_job t
 )
-SELECT public.add_job_event(
-    t.id,
-    CASE WHEN $5 IS NULL THEN 'CREATED' ELSE 'SCHEDULED' END,
-    t.printer_id,
-    'Job created via API',
-    'API',
-    $1,
-    NULL
-)
-FROM target_job t
-RETURNING t.id;
+SELECT id FROM target_job;
 """
 
 CHECK_JOB_EXISTENCE = """SELECT id
 FROM print_jobs
-WHERE client_request_id = $1;"""
-
-CREATE_JOB_EVENT_QUERY = """SELECT public.add_job_event(
-    $job_id,
-    $status,
-    $printer_id,
-    $message
-) AS event_id;"""
+WHERE id = $1;"""
 
 
 GET_JOB_QUERY = """
@@ -109,9 +103,9 @@ CANCEL_JOB_QUERY = """
 SELECT public.add_job_event(
     $1::uuid,
     'CANCELLED',
+    'API',
     NULL,
     'Job cancelled via API',
-    'API',
     $2,
     NULL
 );
@@ -121,9 +115,9 @@ RETRY_JOB_QUERY = """
 SELECT public.add_job_event(
     $1::uuid,
     'RETRY',
+    'API',
     NULL,
     $2, -- message
-    'API',
     $3, -- client_request_id
     NULL
 );

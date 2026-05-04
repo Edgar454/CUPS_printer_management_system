@@ -43,15 +43,16 @@ async def get_db_pool():
     pool = await asyncpg.create_pool(**asyncpg_params)
     return pool
 
-async def add_event(conn, job_id, event_type, message=None, error=None):
+async def add_event(conn, job_id, event_type,printer_id=None, message=None, error=None):
     await conn.execute(
         """
         SELECT public.add_job_event(
-            $1, $2, NULL, $3, 'WORKER', NULL, $4
+            $1, $2,'WORKER',$3 ,$4, NULL, $5
         )
         """,
         job_id,
         event_type,
+        printer_id,
         message,
         error
     )
@@ -59,7 +60,7 @@ async def add_event(conn, job_id, event_type, message=None, error=None):
 async def get_next_job(conn):
     return await conn.fetchrow("""
         SELECT *
-        FROM print_jobs
+        FROM public.print_jobs
         WHERE status = 'QUEUED'
            OR (status = 'SCHEDULED' AND scheduled_at <= now())
         ORDER BY created_at
@@ -69,7 +70,13 @@ async def get_next_job(conn):
 
 async def is_cancelled(conn, job_id):
     status = await conn.fetchval(
-        "SELECT status FROM print_jobs WHERE id = $1",
+        "SELECT status FROM public.print_jobs WHERE id = $1",
         job_id
     )
     return status == "CANCELLED"
+
+async def get_printer_name(conn, printer_id):
+    return await conn.fetchval(
+        "SELECT name FROM public.printers WHERE id = $1",
+        printer_id
+    )

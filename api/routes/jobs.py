@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 from api.utils.queries import (
     GET_JOBS_QUERY , GET_JOB_QUERY , GET_JOB_EVENTS_QUERY , CHECK_JOB_EXISTENCE , CREATE_JOB_QUERY,
     CANCEL_JOB_QUERY , RETRY_JOB_QUERY
-
 )
 
 from api.models.jobs.job_event import JobEvent
@@ -122,7 +121,6 @@ async def create_print_job(
                     payload.file_path,
                     payload.printer_id,
                     payload.scheduled_at,
-                    payload.submitted_by,
                 )
 
                 job = await conn.fetchrow(

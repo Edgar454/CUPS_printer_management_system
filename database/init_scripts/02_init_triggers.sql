@@ -4,9 +4,9 @@
 CREATE OR REPLACE FUNCTION public.add_job_event(
     p_job_id UUID,
     p_event_type TEXT,
+    p_source TEXT ,
     p_printer_id INTEGER DEFAULT NULL,
     p_message TEXT DEFAULT NULL,
-    p_source TEXT NOT NULL,
     p_client_request_id TEXT DEFAULT NULL,
     p_error TEXT DEFAULT NULL
 )
@@ -81,6 +81,7 @@ BEGIN
         p_error
     )
     ON CONFLICT (job_id, client_request_id, event_type)
+    WHERE client_request_id IS NOT NULL
     DO NOTHING;
 
     -- 6. Always update snapshot (do NOT depend on insert success)

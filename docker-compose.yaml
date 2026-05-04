@@ -58,6 +58,10 @@ services:
       DB_USER: ${POSTGRES_USER:-postgres}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DB_SSLMODE: disable
+      CUPS_SERVER_URL: cups_server:631
+      FILE_FOLDER: /files
+    volumes:
+      - shared_files:/files
     depends_on:
       postgres:
         condition: 'service_healthy'
@@ -82,7 +86,6 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DB_SSLMODE: disable
       CUPS_SERVER_URL: cups_server:631
-      CUPS_PRINTER_NAME: PDF
       FILE_FOLDER: '/files'
     volumes:
       - shared_files:/files

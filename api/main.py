@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from api.lifespan import lifespan
-from api.routes import jobs
+from api.routes import jobs,files,printers,system
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,6 +28,9 @@ def healthcheck():
     )
 
 app.include_router(jobs.router)
+app.include_router(files.router)
+app.include_router(printers.router)
+app.include_router(system.router)
 
 # Optional CORS middleware
 app.add_middleware(
