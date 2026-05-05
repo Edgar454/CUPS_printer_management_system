@@ -14,6 +14,8 @@ from api.models.jobs.create_job_request import CreateJobRequest
 from api.models.jobs.cancel_job_request import CancelJobRequest
 from api.models.jobs.retry_job_request import RetryJobRequest
 
+from api.tracing import get_trace_context
+
 
 import logging
 
@@ -113,7 +115,7 @@ async def create_print_job(
     try:
         async with pool.acquire() as conn:
             async with conn.transaction():
-
+                trace_context = get_trace_context()
                 job_id = await conn.fetchval(
                     CREATE_JOB_QUERY,
                     payload.client_request_id,
@@ -121,6 +123,7 @@ async def create_print_job(
                     payload.file_path,
                     payload.printer_id,
                     payload.scheduled_at,
+                    trace_context    
                 )
 
                 job = await conn.fetchrow(

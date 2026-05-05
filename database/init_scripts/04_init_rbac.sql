@@ -49,3 +49,14 @@ GRANT USAGE ON SCHEMA public TO postgres_exporter;
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO postgres_exporter;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
     GRANT SELECT ON TABLES TO postgres_exporter;
+
+-- ============================================
+-- ROLE 4: Grafana User 
+-- ============================================
+CREATE ROLE grafana_user LOGIN PASSWORD 'grafana_user_password';
+GRANT CONNECT ON DATABASE postgres TO grafana_user;
+GRANT USAGE ON SCHEMA public TO grafana_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_user;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO grafana_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+    GRANT SELECT ON TABLES TO grafana_user;

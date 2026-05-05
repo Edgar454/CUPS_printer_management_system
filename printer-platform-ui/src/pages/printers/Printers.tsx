@@ -37,7 +37,7 @@ export default function PrintersPage() {
       <FilterTabs
         options={["All", "Online", "Offline"]}
         value={filter}
-        onChange={setFilter}
+        onChange={(value) => setFilter(value as "All" | "Online" | "Offline")}
       />
 
       {/* grid */}

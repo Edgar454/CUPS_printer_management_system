@@ -44,6 +44,13 @@ async def get_db_pool():
     pool = await asyncpg.create_pool(**asyncpg_params)
     return pool
 
+async def create_listening_pool():
+    params = get_asyncpg_connection_params()
+    params.pop('min_size', None)
+    params.pop('max_size', None)
+    listen_pool = await asyncpg.connect(**params)
+    return listen_pool
+
 def get_cups_conn():
     url = os.getenv("CUPS_SERVER_URL", "localhost:631")
     if ":" in url:

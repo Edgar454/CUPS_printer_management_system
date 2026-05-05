@@ -14,13 +14,15 @@ new_job AS (
         printer_id,
         scheduled_at,
         submitted_by,
-        status
+        status ,
+        trace_context
     )
     SELECT
         gen_random_uuid(),
         $2, $3, $4,$5::timestamptz,
         'API',
-        CASE WHEN $5 IS NULL THEN 'QUEUED' ELSE 'SCHEDULED' END
+        CASE WHEN $5 IS NULL THEN 'QUEUED' ELSE 'SCHEDULED' END , 
+        $6
     WHERE NOT EXISTS (SELECT 1 FROM existing)
     RETURNING id, printer_id
 ),

@@ -7,6 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.lifespan import lifespan
 from api.routes import jobs,files,printers,system
 
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
+from api.tracing import setup_tracing
+
+from prometheus_fastapi_instrumentator import Instrumentator
+
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -18,8 +25,17 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+# setup tracing before app creation
+setup_tracing()
+AsyncPGInstrumentor().instrument()
 
 app = FastAPI(lifespan=lifespan)
+
+# setup metrics
+Instrumentator().instrument(app).expose(app)
+
+# instrument after app creation
+FastAPIInstrumentor.instrument_app(app)
 
 @app.get("/health", status_code=200)
 def healthcheck():

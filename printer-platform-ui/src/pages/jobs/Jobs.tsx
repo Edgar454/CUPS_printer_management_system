@@ -8,7 +8,7 @@ import { SchedulePrintModal } from "@/features/jobs/scheduleModal/SchedulePrintM
 import { JOBS } from "@/mocks/jobs.mock";
 import { PRINTERS } from "@/mocks/printers.mock";
 
-import type { Job } from "@/features/jobs/jobHistory/JobHistoryTable";
+import type { Job } from "@/features/jobs/history/JobHistoryTable";
 
 import "./Jobs.css";
 

@@ -18,6 +18,7 @@ REQUIRED_VARS=(
     "API_PASSWORD"
     "WORKER_PASSWORD"
     "POSTGRES_EXPORTER_PASSWORD"
+    "GRAFANA_USER_PASSWORD"
 )
 
 for var in "${REQUIRED_VARS[@]}"; do
@@ -35,6 +36,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
     ALTER USER pipeline_worker WITH PASSWORD '$WORKER_PASSWORD';
     -- Update prometheus_exporter user
     ALTER USER postgres_exporter WITH PASSWORD '$POSTGRES_EXPORTER_PASSWORD';
+    -- Update grafana_user user
+    ALTER USER grafana_user WITH PASSWORD '$GRAFANA_USER_PASSWORD';
 EOSQL
 
 echo ""
@@ -46,6 +49,7 @@ echo "Users configured:"
 echo "  ✓ api user"
 echo "  ✓ worker user"
 echo "  ✓ prometheus_exporter user"
+echo "  ✓ grafana_user user"
 echo ""
 echo "Database ready for use!"
 echo "============================================"

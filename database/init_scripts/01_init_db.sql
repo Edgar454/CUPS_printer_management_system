@@ -66,6 +66,8 @@ CREATE TABLE public.print_jobs (
 
     error_message TEXT,
 
+    trace_context JSONB,
+
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
 

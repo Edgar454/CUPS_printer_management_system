@@ -1,15 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
+import type { Action } from "@/types/action";
 
 const actions = [
-  { icon: "⚙", label: "Settings", path: "/settings", disabled: false },
-  { icon: "→", label: "Logout", path: "/login", action: "logout" },
+  { icon: "⚙", label: "Settings", path: "/settings", disabled: false } as Action,
+  { icon: "→", label: "Logout", path: "/login", action: "logout" } as Action,
 ];
 
 export function SidebarFooter({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
 
-  const handleClick = (a) => {
+  const handleClick = (a: Action) => {
     if (a.action === "logout") {
       // TODO: auth cleanup
       console.log("logout");

@@ -106,6 +106,24 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================
+-- TRIGGER: Notify processing pipeline of new print jobs
+-- ============================================================
+CREATE OR REPLACE FUNCTION notify_new_print_job()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status IN ('QUEUED', 'SCHEDULED') THEN
+        PERFORM pg_notify('new_print_job', NEW.id::text);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_notify_new_print_job
+AFTER INSERT ON public.print_jobs
+FOR EACH ROW
+EXECUTE FUNCTION notify_new_print_job();
+
+-- ============================================================
 -- TRIGGER: AUTO UPDATE updated_at
 -- ============================================================
 CREATE OR REPLACE FUNCTION set_updated_at()

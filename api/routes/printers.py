@@ -15,9 +15,12 @@ from api.utils.route_utils import get_db_pool , get_settings  , get_cups_conn
 from api.utils.lifespan_utils import create_cups_connection
 
 import logging
+from opentelemetry import trace
+
 
 router = APIRouter(prefix="/printers", tags=["printers"])
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
 
 
 @router.get("/", response_model=list[Printer])
@@ -49,20 +52,18 @@ async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool
             raise HTTPException(400, "Printer already exists")
 
     
-    def _add_printer(payload):  
-        cups_conn = create_cups_connection()
-        logger.info("CUPS: addPrinter")
-        cups_conn.addPrinter(name=payload.name, device=payload.cups_uri)
-
-        logger.info("CUPS: enablePrinter")
-        cups_conn.enablePrinter(payload.name)
-
-        logger.info("CUPS: acceptJobs")
-        cups_conn.acceptJobs(payload.name)
-
-        logger.info("CUPS: getPrinterAttributes")
-        cups_conn.getPrinterAttributes(payload.name)
-        return "ONLINE"
+        def _add_printer(payload):
+            with tracer.start_as_current_span("cups.add_printer") as span:
+                span.set_attribute("printer.name", payload.name)
+                span.set_attribute("printer.uri", payload.cups_uri)
+                
+                logger.info(f"Adding printer {payload.name} to CUPS with URI {payload.cups_uri}")
+                cups_conn = create_cups_connection()
+                cups_conn.addPrinter(name=payload.name, device=payload.cups_uri)
+                cups_conn.enablePrinter(payload.name)
+                cups_conn.acceptJobs(payload.name)
+                logger.info(f"Printer {payload.name} added to CUPS successfully")
+                return "ONLINE"
 
     try:
         status = await asyncio.wait_for(
@@ -152,11 +153,15 @@ async def delete_printer(name: str, pool=Depends(get_db_pool), settings=Depends(
     try:
         logger.info(f"Deleting printer {printer_name} from CUPS")
         def _delete_printer(printer_name):
-            cups_conn = create_cups_connection()
-            cups_conn.deletePrinter(printer_name)
+            with tracer.start_as_current_span("cups.delete_printer") as span:
+                span.set_attribute("printer.name", printer_name)
+                cups_conn = create_cups_connection()
+                cups_conn.deletePrinter(printer_name)
         await asyncio.to_thread(_delete_printer, printer_name)
         logger.info(f"Printer {printer_name} deleted from CUPS successfully")
     except Exception as e:
+        span.set_status(trace.StatusCode.ERROR, str(e))
+        span.record_exception(e)
         raise HTTPException(
             500,
             f"Failed to delete printer from CUPS: {e}"

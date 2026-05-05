@@ -6,5 +6,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "asyncpg>=0.31.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.41.1",
+    "opentelemetry-instrumentation-asyncpg>=0.62b1",
+    "opentelemetry-sdk>=1.41.1",
     "pycups>=2.0.4",
 ]
