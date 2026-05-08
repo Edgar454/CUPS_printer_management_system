@@ -174,45 +174,11 @@ async def cancel_job(
         logger.exception("Error cancelling job")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @router.post("/{id}/retry", response_model=JobSnapshot)
 async def retry_job(
     id: UUID,
     client_request_id: str,
-    pool=Depends(get_db_pool)
-):
-    try:
-        async with pool.acquire() as conn:
-            async with conn.transaction():
-
-                # ensure job exists
-                exists = await conn.fetchval(
-                    CHECK_JOB_EXISTENCE,
-                    id
-                )
-                if not exists:
-                    raise HTTPException(status_code=404, detail="Job not found")
-
-                await conn.execute(
-                    RETRY_JOB_QUERY,
-                    id,
-                    client_request_id
-                )
-
-                job = await conn.fetchrow(GET_JOB_QUERY, id)
-
-                return JobSnapshot(**dict(job))
-
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Error retrying job")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@router.post("/{id}/retry", response_model=JobSnapshot)
-async def retry_job(
-    id: UUID,
-    payload: RetryJobRequest,
     pool=Depends(get_db_pool)
 ):
     try:
@@ -240,8 +206,7 @@ async def retry_job(
                     RETRY_JOB_QUERY,
                     id,
                     job["printer_id"],
-                    payload.message or "Retry requested via API",
-                    payload.client_request_id
+                    client_request_id
                 )
 
                 # 4. Return updated snapshot

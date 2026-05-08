@@ -9,7 +9,7 @@ from opentelemetry import trace , propagate
 
 from processing_pipeline.tracing import setup_tracing, continue_trace
 from processing_pipeline.utils import (
-    get_db_pool , create_listening_pool , get_next_job, add_event, is_cancelled , get_printer_name , get_cups_conn
+    get_db_pool , create_listening_pool , get_next_job, add_event, is_cancelled , get_printer_name , get_cups_conn , update_heartbeat
 )
 
 setup_tracing()
@@ -37,12 +37,11 @@ POLL_INTERVAL = 30
 # Processing layer (simple MVP)
 # -------------------------------------------------
 
-async def process_job(pool):
+async def process_job(worker_id , pool):
     logger.info("🔄 Worker cycle started")
     file_folder = os.getenv("FILE_FOLDER", "/files")
 
     async with pool.acquire() as conn:
-        worker_id = f"worker-{os.getpid()}"
         job = await get_next_job(conn, worker_id)
 
         if not job:
@@ -129,23 +128,25 @@ async def on_notification(conn, pid, channel, payload):
     logger.info(f"🔔 Notification received: job {payload}")
     await job_queue.put(payload)
 
-async def poll_loop():
+async def poll_loop(pool):
     while True:
         await job_queue.put("poll")
+        await update_heartbeat(pool)  
         await asyncio.sleep(30)
 
-async def process_loop(pool):
+async def process_loop(worker_id, pool):
     while True:
         try:
             payload = await job_queue.get()
             logger.info(f"⚙️ Processing triggered by: {payload}")
-            await process_job(pool)
+            await process_job(worker_id, pool)
         except Exception as e:
             logger.error(f"💥 Error: {e}")
 
 async def worker_loop():
     logger.info("🚀 Worker started")
     pool = await get_db_pool()
+    worker_id = f"worker-{os.getpid()}"
 
     listen_conn = await create_listening_pool()
     await listen_conn.add_listener('new_print_job', on_notification)
@@ -157,8 +158,8 @@ async def worker_loop():
             await asyncio.sleep(3600)
 
     await asyncio.gather(
-        process_loop(pool),
-        poll_loop(),
+        process_loop(worker_id, pool),
+        poll_loop(pool),
         keep_listener_alive(),
     )
 

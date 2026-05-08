@@ -7,6 +7,19 @@ datasources:
     access: proxy
     isDefault: false
 
+  - name: Tempo
+    type: tempo
+    url: http://tempo:3200
+    access: proxy
+    isDefault: true
+    jsonData:
+      serviceMap:
+        datasourceUid: Prometheus
+      tracesToMetrics:
+        datasourceUid: Prometheus
+      nodeGraph:
+        enabled: true
+
   - name: PostgreSQL
     type: postgres
     url: postgres:5432
@@ -18,3 +31,4 @@ datasources:
       sslmode: disable
     access: proxy
     isDefault: false
+  

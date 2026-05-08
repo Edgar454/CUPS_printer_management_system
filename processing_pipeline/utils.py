@@ -107,3 +107,13 @@ async def get_printer_name(conn, printer_id):
         "SELECT name FROM public.printers WHERE id = $1",
         printer_id
     )
+
+async def update_heartbeat(pool):
+    worker_id = f"worker-{os.getpid()}"
+    async with pool.acquire() as conn:
+        await conn.execute("""
+            INSERT INTO worker_heartbeat (worker_id, last_seen)
+            VALUES ($1, NOW())
+            ON CONFLICT (worker_id) 
+            DO UPDATE SET last_seen = NOW()
+        """, worker_id)

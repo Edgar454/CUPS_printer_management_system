@@ -118,8 +118,8 @@ SELECT public.add_job_event(
     $1::uuid,
     'RETRY',
     'API',
-    NULL,
-    $2, -- message
+    $2, -- printer_id
+    "Retry requested via API",
     $3, -- client_request_id
     NULL
 );

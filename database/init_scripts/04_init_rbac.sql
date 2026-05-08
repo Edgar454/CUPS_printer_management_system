@@ -38,7 +38,7 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pipeline_worker;
 -- ============================================
 -- ROLE 3: Postgres Monitor 
 -- ============================================
-CREATE USER postgres_exporter LOGIN PASSWORD 'exporter_password';
+CREATE ROLE postgres_exporter LOGIN PASSWORD 'exporter_password';
 GRANT pg_monitor, pg_read_all_stats  TO postgres_exporter;
 
 

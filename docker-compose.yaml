@@ -1,7 +1,9 @@
 
 services:
   postgres :
-    image: postgres:18-alpine
+    build:
+      context: .
+      dockerfile: database/Dockerfile
     container_name: cups_postgres
     restart: always
     environment:

@@ -23,6 +23,9 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-remote-write-receiver'
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -30,10 +33,24 @@ services:
       - cups_network
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: postgres_exporter
+    image: ghcr.io/edgar454/pg_exporter:custom 
+    container_name: cups_postgres-exporter
     environment:
-      DATA_SOURCE_NAME: postgresql://postgres_exporter:${POSTGRES_EXPORTER_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      PG_EXPORTER_DSN: postgresql://${EXPORTER_USER}:${POSTGRES_EXPORTER_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      PG_EXPORTER_PORT: 9187
+    command:
+      - '--collector.locks'
+      - '--collector.database'
+      - '--collector.stat'
+      - '--collector.replication'
+      - '--collector.index'
+      - '--collector.statements'
+      - '--collector.tls'
+      - '--collector.exporter'
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: "service_healthy"
     networks:
       - cups_network
 
@@ -48,6 +65,7 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
     networks:
       - cups_network

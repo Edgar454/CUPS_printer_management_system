@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
 -- ============================================================
 -- FUNCTION: ADD EVENT + UPDATE SNAPSHOT
 -- ============================================================
@@ -143,3 +145,35 @@ CREATE TRIGGER trg_printers_updated_at
 BEFORE UPDATE ON public.printers
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+-- ============================================================
+-- Function: Recover Stuck Jobs
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.recover_stucked_jobs()
+RETURNS void AS $$
+DECLARE
+    stuck_job RECORD;
+BEGIN
+    FOR stuck_job IN
+        SELECT DISTINCT pj.id AS job_id
+        FROM public.job_events je
+        JOIN public.print_jobs pj ON pj.id = je.job_id
+        WHERE je.event_type IN ('PROCESSING_STARTED', 'PRINTING_STARTED')
+        AND pj.locked_until IS NOT NULL
+        AND pj.locked_until < NOW()
+        AND pj.status IN ('PROCESSING', 'PRINTING')
+    LOOP
+        PERFORM public.add_job_event(
+            p_job_id := stuck_job.job_id,
+            p_event_type := 'RETRY',
+            p_source := 'SYSTEM',
+            p_locked_until := NULL,
+            p_message := 'Automatically retrying stuck job'
+        );
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT cron.schedule('recover-stuck-jobs', '*/5 * * * *', 
+    'SELECT public.recover_stucked_jobs()'
+);
