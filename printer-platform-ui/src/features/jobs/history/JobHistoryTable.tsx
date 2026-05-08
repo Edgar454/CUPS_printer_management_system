@@ -1,22 +1,20 @@
 import "./JobHistoryTable.css";
 import { Badge } from "@/components/badge/Badge";
 import { Button } from "@/components/btn/Button";
-
-export interface Job {
-  id: number;
-  file: string;
-  printer: string;
-  status: string;
-  time: string;
-}
+import type { Job } from "@/types/job";
+import { timeAgo } from "@/utils/time_features";
 
 interface Props {
   jobs: Job[];
+  isLoading?: boolean;
+  error?: boolean;
   onRetry?: (job: Job) => void;
   onCancel?: (job: Job) => void;
 }
 
-export function JobHistoryTable({ jobs, onRetry, onCancel }: Props) {
+
+
+export function JobHistoryTable({ jobs, isLoading, error, onRetry, onCancel }: Props) {
   return (
     <div className="jobHistoryTable">
       <h3 className="jobHistoryTable__title">Job History</h3>
@@ -24,46 +22,35 @@ export function JobHistoryTable({ jobs, onRetry, onCancel }: Props) {
       <table className="jobHistoryTable__table">
         <thead>
           <tr>
-            {["Job ID", "File", "Printer", "Status", "Time", "Actions"].map(
-              (h) => (
-                <th key={h}>{h}</th>
-              )
-            )}
+            {["Job ID", "File", "Printer", "Status", "Retries", "Time", "Actions"].map((h) => (
+              <th key={h}>{h}</th>
+            ))}
           </tr>
         </thead>
 
         <tbody>
-          {jobs.map((job) => (
+          {isLoading && (
+            <tr><td colSpan={7} className="muted">⏳ Loading jobs...</td></tr>
+          )}
+          {error && (
+            <tr><td colSpan={7} className="muted">⚠️ Failed to load jobs</td></tr>
+          )}
+          {!isLoading && !error && jobs.map((job) => (
             <tr key={job.id}>
-              <td className="mono">#{job.id}</td>
-
-              <td className="fileCell">{job.file}</td>
-
-              <td>{job.printer}</td>
-
-              <td>
-                <Badge status={job.status} />
-              </td>
-
-              <td className="muted">{job.time}</td>
-
+              <td className="mono">#{job.id.slice(0, 8)}</td>
+              <td className="fileCell">{job.file_name}</td>
+              <td>{job.printer_name ?? "—"}</td>
+              <td><Badge status={job.status} /></td>
+              <td className="muted">{job.retry_count}</td>
+              <td className="muted">{timeAgo(job.created_at)}</td>
               <td className="actions">
                 {job.status === "FAILED" && (
-                  <Button
-                    small
-                    variant="secondary"
-                    onClick={() => onRetry?.(job)}
-                  >
+                  <Button small variant="secondary" onClick={() => onRetry?.(job)}>
                     Retry
                   </Button>
                 )}
-
-                {job.status === "SCHEDULED" && (
-                  <Button
-                    small
-                    variant="danger"
-                    onClick={() => onCancel?.(job)}
-                  >
+                {(job.status === "SCHEDULED" || job.status === "QUEUED") && (
+                  <Button small variant="danger" onClick={() => onCancel?.(job)}>
                     Cancel
                   </Button>
                 )}

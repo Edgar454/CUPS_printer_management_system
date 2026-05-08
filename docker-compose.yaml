@@ -68,6 +68,7 @@ services:
       CUPS_USER: ${CUPS_USER:-admin}
       CUPS_PASSWORD: ${CUPS_PASSWORD:-admin}
       FILE_FOLDER: /files
+      FRONTEND_URL: http://localhost:5174
       OTEL_SERVICE_NAME: cups-api
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       ENV: development
@@ -126,6 +127,7 @@ services:
         condition: 'service_healthy'
       init-permissions:
         condition: service_completed_successfully
+    restart: on-failure
     networks:
       - cups_network
   

@@ -5,6 +5,7 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import Printers from "@/pages/printers/Printers";
 import Jobs from "@/pages/jobs/Jobs";
 import SystemPage from "@/pages/system/SystemPage";
+import PdfPreview from "@/pages/preview/PreviewPage";
 
 export default function App() {
   return (

@@ -1,0 +1,17 @@
+.confirmModal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.confirmModal__message {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.confirmModal__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}

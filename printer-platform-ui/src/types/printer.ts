@@ -6,6 +6,7 @@ export type Printer = {
   name: string
   status: PrinterStatus
   cups_uri: string
+  queue_count: number
 }
 
 export type PrinterTestResponse = {
@@ -17,4 +18,9 @@ export type PrinterTestResponse = {
 export type PrinterDiagnosisResponse = {
   printer: string
   details: string
+}
+
+export type CreatePrinterPayload = {
+  name: string
+  cups_uri: string
 }

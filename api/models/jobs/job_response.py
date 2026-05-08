@@ -5,7 +5,7 @@ from uuid import UUID
 
 class JobSnapshot(BaseModel):
     id: UUID
-    printer_id: Optional[int] = None
+    printer_name: Optional[str] = None
     file_name: str
     file_path: str
     status: str

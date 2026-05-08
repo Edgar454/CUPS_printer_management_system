@@ -12,3 +12,6 @@ export const getStats = () =>
 
 export const getQueueMetrics = () =>
   api.get<QueueMetrics>('/system/queue').then(r => r.data)
+
+export const getSystemLogs = (limit = 50) =>
+  api.get<{ logs: string[] }>('/system/logs', { params: { limit } }).then(r => r.data)

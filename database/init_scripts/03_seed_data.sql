@@ -13,6 +13,7 @@ INSERT INTO job_state_transitions VALUES
     ('PRINTING', 'COMPLETED'),
     ('PROCESSING', 'FAILED'),
     ('PRINTING', 'FAILED'),
+    ('SCHEDULED','SCHEDULED'),
     ('QUEUED','QUEUED'),
     ('PROCESSING','PROCESSING'),
     ('PRINTING','PRINTING'),

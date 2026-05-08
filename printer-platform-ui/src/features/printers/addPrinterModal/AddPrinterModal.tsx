@@ -2,40 +2,39 @@ import { useState } from "react";
 import { Modal } from "@/components/modal/Modal";
 import { Input } from "@/components/input/Input";
 import { Button } from "@/components/btn/Button";
-import type { Printer } from "@/types/printer";
+import type { CreatePrinterPayload } from "@/types/printer";
 import "./AddPrinterModal.css";
 
 interface Props {
-  //TODO: we can make this more flexible by allowing partial printer data and letting the backend fill in the rest
   open: boolean;
   onClose: () => void;
-  onSubmit: (printer: Printer) => void;
+  onSubmit: (payload: CreatePrinterPayload) => Promise<void>;
 }
 
 export function AddPrinterModal({ open, onClose, onSubmit }: Props) {
-  const [form, setForm] = useState({
-    name: "",
-    ip: "",
-    uri: "",
-  });
+  const [form, setForm] = useState({ name: "", cups_uri: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
 
-  const handleSubmit = () => {
-    const newPrinter: Printer = {
-      id: Date.now(),
-      name: form.name || "New Printer",
-      ip: form.ip || "0.0.0.0",
-      status: "ONLINE",
-      queue: 0,
-      lastActivity: "Just added",
-    };
+  const handleSubmit = async () => {
+    if (!form.name || !form.cups_uri) {
+      setError("All fields are required");
+      return;
+    }
 
-    onSubmit(newPrinter);
-    onClose();
+    setLoading(true);
+    setError(null);
 
-    // reset form
-    setForm({ name: "", ip: "", uri: "" });
+    try {
+      await onSubmit({ name: form.name, cups_uri: form.cups_uri });
+      setForm({ name: "", cups_uri: "" });
+    } catch (e) {
+      setError("Failed to add printer");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,36 +44,24 @@ export function AddPrinterModal({ open, onClose, onSubmit }: Props) {
           label="Printer Name"
           placeholder="HP LaserJet 500"
           value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
-        />
-
-        <Input
-          label="IP Address"
-          placeholder="192.168.1.110"
-          value={form.ip}
-          onChange={(e) =>
-            setForm({ ...form, ip: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         <Input
           label="CUPS URI"
-          placeholder="ipp://cups_server:631/printers/..."
-          value={form.uri}
-          onChange={(e) =>
-            setForm({ ...form, uri: e.target.value })
-          }
+          placeholder="ipp://dummy_printer:8631/ipp/print"
+          value={form.cups_uri}
+          onChange={(e) => setForm({ ...form, cups_uri: e.target.value })}
         />
 
+        {error && <div className="addPrinterModal__error">{error}</div>}
+
         <div className="addPrinterModal__actions">
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose} type="button">
             Cancel
           </Button>
-
-          <Button onClick={handleSubmit}>
-            Add Printer
+          <Button onClick={handleSubmit} type="button">
+            {loading ? "Adding..." : "Add Printer"}
           </Button>
         </div>
       </div>

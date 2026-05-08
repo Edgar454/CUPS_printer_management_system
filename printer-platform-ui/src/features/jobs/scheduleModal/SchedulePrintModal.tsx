@@ -14,7 +14,6 @@ interface Props {
     printer: string;
     date: string;
     time: string;
-    priority: string;
   }) => void;
 }
 
@@ -40,7 +39,6 @@ export function SchedulePrintModal({
       printer: String(formData.get("printer") || ""),
       date: String(formData.get("date") || ""),
       time: String(formData.get("time") || ""),
-      priority: String(formData.get("priority") || "Normal"),
     });
 
     onClose();
@@ -68,15 +66,6 @@ export function SchedulePrintModal({
           <div className="scheduleModal__grid">
             <Input name="date" label="Date" type="date" />
             <Input name="time" label="Time" type="time" />
-          </div>
-
-          <div className="scheduleModal__field">
-            <label>Priority</label>
-            <select name="priority" defaultValue="Normal">
-              <option>Normal</option>
-              <option>High</option>
-              <option>Low</option>
-            </select>
           </div>
 
           <div className="scheduleModal__actions">

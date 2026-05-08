@@ -1,19 +1,35 @@
-export const statusColor = (s: string) => ({
-  SUCCESS: "#22c55e",
-  ONLINE: "#22c55e",
-  FAILED: "#ef4444",
-  OFFLINE: "#ef4444",
-  SCHEDULED: "#f59e0b",
-  PENDING: "#f59e0b",
-  PROCESSING: "#3b82f6",
-  RUNNING: "#22c55e",
-}[s] || "#888")
+export function statusColor(status: string): string {
+  switch (status.toUpperCase()) {
+    case "ONLINE":
+    case "COMPLETED":
+    case "SUCCESS":
+      return "#22c55e"  // green
 
-export const statusBg = (s: string) => ({
-  SUCCESS: "#f0fdf4",
-  ONLINE: "#f0fdf4",
-  FAILED: "#fef2f2",
-  OFFLINE: "#fef2f2",
-  SCHEDULED: "#fffbeb",
-  PENDING: "#fffbeb",
-}[s] || "#f5f5f5")
+    case "QUEUED":
+    case "SCHEDULED":
+      return "#3b82f6"  // blue
+
+    case "PROCESSING":
+    case "PRINTING":
+    case "RUNNING":
+      return "#8b5cf6"  // purple
+
+    case "FAILED":
+    case "ERROR":
+    case "OFFLINE":
+      return "#ef4444"  // red
+
+    case "CANCELLED":
+      return "#6b7280"  // gray
+
+    case "RETRY":
+      return "#f59e0b"  // orange
+
+    default:
+      return "#6b7280"  // gray fallback
+  }
+}
+
+export function statusBg(status: string): string {
+  return statusColor(status) + "18"  // 10% opacity
+}

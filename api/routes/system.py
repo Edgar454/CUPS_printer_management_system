@@ -92,3 +92,13 @@ async def queue_metrics(pool=Depends(get_db_pool)):
     except Exception:
         logger.exception("Queue metrics failed")
         raise HTTPException(status_code=500, detail="Error fetching queue metrics")
+
+@router.get("/logs")
+async def get_logs(limit: int = 50):
+    log_file = "/app/logs/api.log"
+    try:
+        with open(log_file, "r") as f:
+            lines = f.readlines()
+            return {"logs": lines[-limit:]}
+    except Exception:
+        raise HTTPException(500, "Could not read logs")

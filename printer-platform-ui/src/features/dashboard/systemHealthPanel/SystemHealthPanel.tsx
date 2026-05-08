@@ -1,4 +1,7 @@
 import "./SystemHealthPanel.css";
+import useSWR from "swr";
+import { getHealth, getWorkers } from "@/services/system";
+import type { HealthResponse, WorkerStatus } from "@/types/system";
 
 type SystemItem = {
   name: string;
@@ -6,37 +9,51 @@ type SystemItem = {
   status: "ONLINE" | "RUNNING" | "OFFLINE" | "ERROR";
 };
 
-interface Props {
-  items?: SystemItem[];
-}
-
-const defaultItems: SystemItem[] = [
-  { name: "Database", sub: "Connected", status: "ONLINE" },
-  { name: "CUPS Server", sub: "Connected", status: "ONLINE" },
-  { name: "Worker Service", sub: "Running", status: "RUNNING" },
-  { name: "File Storage", sub: "Healthy", status: "ONLINE" },
-];
-
 const statusColor = (status: SystemItem["status"]) => {
   switch (status) {
-    case "ONLINE":
-      return "#22c55e";
-    case "RUNNING":
-      return "#3b82f6";
-    case "OFFLINE":
-      return "#f59e0b";
-    case "ERROR":
-      return "#ef4444";
-    default:
-      return "#999";
+    case "ONLINE": return "#22c55e";
+    case "RUNNING": return "#3b82f6";
+    case "OFFLINE": return "#f59e0b";
+    case "ERROR": return "#ef4444";
+    default: return "#999";
   }
 };
 
-export function SystemHealthPanel({ items = defaultItems }: Props) {
+export function SystemHealthPanel() {
+  const { data: health } = useSWR<HealthResponse>('/system/health', getHealth, { refreshInterval: 10000 })
+  const { data: workers } = useSWR<WorkerStatus[]>('/system/workers', getWorkers, { refreshInterval: 10000 })
+
+  const worker = workers?.[0]
+  const workerHealthy = worker 
+    ? parseFloat(worker.lag.toString()) < 60 
+    : false
+
+  const items: SystemItem[] = [
+    {
+      name: "Database",
+      sub: health?.checks.database ? "Connected" : "Unreachable",
+      status: health?.checks.database ? "ONLINE" : "ERROR"
+    },
+    {
+      name: "CUPS Server",
+      sub: health?.checks.cups ? "Connected" : "Unreachable",
+      status: health?.checks.cups ? "ONLINE" : "ERROR"
+    },
+    {
+      name: "Worker Service",
+      sub: workerHealthy ? `Last seen ${worker?.lag}` : "Not responding",
+      status: workerHealthy ? "RUNNING" : "ERROR"
+    },
+    {
+      name: "File Storage",
+      sub: "Healthy",
+      status: "ONLINE"
+    },
+  ]
+
   return (
     <div className="systemHealthPanel">
       <h3 className="systemHealthPanel__title">System Health</h3>
-
       <div className="systemHealthPanel__list">
         {items.map((s) => (
           <div key={s.name} className="systemHealthPanel__item">
@@ -44,7 +61,6 @@ export function SystemHealthPanel({ items = defaultItems }: Props) {
               className="systemHealthPanel__dot"
               style={{ background: statusColor(s.status) }}
             />
-
             <div className="systemHealthPanel__content">
               <div className="systemHealthPanel__name">{s.name}</div>
               <div className="systemHealthPanel__sub">{s.sub}</div>

@@ -9,7 +9,7 @@ export type JobStatus =
 
 export type Job = {
   id: string          
-  printer_id: number | null
+  printer_name: number | null
   file_name: string   
   file_path: string
   status: JobStatus

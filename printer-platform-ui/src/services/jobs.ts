@@ -34,3 +34,6 @@ export const retryJob = (id: string, client_request_id: string) =>
 
 export const getJobEvents = (id: string, limit = 100, offset = 0) =>
   api.get<JobEvent[]>(`/jobs/${id}/events`, { params: { limit, offset } }).then(r => r.data)
+
+export const fetchRecentEvents = (limit: number) =>
+  api.get<JobEvent[]>('/jobs/events', { params: { limit } }).then(r => r.data)

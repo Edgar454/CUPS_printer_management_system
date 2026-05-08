@@ -1,10 +1,16 @@
 import "./ScheduledJobsPanel.css";
 import { Badge } from "@/components/badge/Badge";
-import { SCHEDULED } from "@/mocks/scheduled.mock";
+import type { Job } from "@/types/job";
 import { useNavigate } from "react-router-dom";
+import { formatScheduledAt } from "@/utils/time_features";
 
-export function ScheduledJobsPanel() {
+interface Props {
+  jobs: Job[];
+}
+
+export function ScheduledJobsPanel({ jobs }: Props) {
   const navigate = useNavigate();
+  const scheduled = jobs?.filter((j) => j.status === "SCHEDULED") ?? [];
 
   return (
     <div className="scheduled-jobs">
@@ -19,18 +25,18 @@ export function ScheduledJobsPanel() {
 
       {/* list */}
       <div className="scheduled-list">
-        {SCHEDULED.map((s, i) => (
+        {scheduled.map((s, i) => (
           <div key={i} className="scheduled-item">
             <div className="icon">📅</div>
 
             <div className="content">
               <div className="meta">
-                {s.date} · {s.time}
+                {formatScheduledAt(s.scheduled_at)}
               </div>
 
-              <div className="file">{s.file}</div>
+              <div className="file">{s.file_name}</div>
 
-              <div className="printer">{s.printer}</div>
+              <div className="printer">{s.printer_name}</div>
             </div>
 
             <Badge status="SCHEDULED" />

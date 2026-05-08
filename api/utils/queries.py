@@ -14,14 +14,14 @@ new_job AS (
         printer_id,
         scheduled_at,
         submitted_by,
-        status ,
+        status,
         trace_context
     )
     SELECT
         gen_random_uuid(),
-        $2, $3, $4,$5::timestamptz,
+        $2, $3, $4, $5::timestamptz,
         'API',
-        CASE WHEN $5 IS NULL THEN 'QUEUED' ELSE 'SCHEDULED' END , 
+        CASE WHEN $5 IS NULL THEN 'QUEUED' ELSE 'SCHEDULED' END,
         $6
     WHERE NOT EXISTS (SELECT 1 FROM existing)
     RETURNING id, printer_id
@@ -44,7 +44,7 @@ event_insert AS (
     )
     FROM target_job t
 )
-SELECT id FROM target_job;
+SELECT t.id FROM target_job t, event_insert;
 """
 
 CHECK_JOB_EXISTENCE = """SELECT id
@@ -54,41 +54,39 @@ WHERE id = $1;"""
 
 GET_JOB_QUERY = """
 SELECT 
-    id,
-    printer_id,
-    file_name,
-    file_path,
-    status,
-    scheduled_at,
-    retry_count, 
-    error_message,
-    created_at,
-    updated_at
-FROM print_jobs 
-WHERE id = $1::uuid;
+    pj.id,
+    p.name AS printer_name,
+    pj.file_name,
+    pj.file_path,
+    pj.status,
+    pj.scheduled_at,
+    pj.retry_count, 
+    pj.error_message,
+    pj.created_at,
+    pj.updated_at
+FROM print_jobs pj
+JOIN printers p ON p.id = pj.printer_id
+WHERE pj.id = $1::uuid;
 """
 
 GET_JOBS_QUERY = """
 WITH filtered AS (
     SELECT
-        id,
-        printer_id,
-        file_name,
-        file_path,
-        pages,
-        submitted_by,
-        status,
-        scheduled_at,
-        retry_count,
-        locked_by,
-        locked_at,
-        error_message,
-        created_at,
-        updated_at
-    FROM print_jobs
-    WHERE ($1::text IS NULL OR status = $1)
-      AND ($2::int IS NULL OR printer_id = $2)
-      AND ($3::text IS NULL OR submitted_by = $3)
+        pj.id,
+        p.name AS printer_name,
+        pj.file_name,
+        pj.file_path,
+        pj.status,
+        pj.scheduled_at,
+        pj.retry_count, 
+        pj.error_message,
+        pj.created_at,
+        pj.updated_at
+    FROM print_jobs pj
+    JOIN printers p ON p.id = pj.printer_id
+    WHERE ($1::text IS NULL OR pj.status = $1)
+      AND ($2::int IS NULL OR pj.printer_id = $2)
+      AND ($3::text IS NULL OR pj.submitted_by = $3)
 ),
 counted AS (
     SELECT COUNT(*) AS total FROM filtered
@@ -130,6 +128,21 @@ FROM print_jobs
 WHERE printer_id = $1 
 AND status = 'QUEUED';"""
 
+GET_RECENT_EVENTS_QUERY = """
+SELECT 
+    id,
+    job_id,
+    event_type,
+    printer_id,
+    message,
+    error,
+    source,
+    created_at
+FROM job_events
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
+"""
+
 GET_JOB_EVENTS_QUERY = """
 SELECT 
     id,
@@ -148,9 +161,10 @@ LIMIT $2 OFFSET $3;
 
 
 # PRINTER QUERIES
-GET_ALL_PRINTERS_QUERY = """SELECT * 
-FROM printers
-ORDER BY id"""
+GET_ALL_PRINTERS_QUERY = """SELECT p.*, COUNT(pj.id) FILTER (WHERE pj.status = 'QUEUED') AS queue_count
+FROM printers p
+LEFT JOIN print_jobs pj ON pj.printer_id = p.id
+GROUP BY p.id;"""
 
 GET_PRINTER_QUERY = """SELECT * 
 FROM printers 
@@ -172,7 +186,7 @@ WHERE name = $2;"""
 # SYSTEM QUERIES
 GET_WORKER_STATUS_QUERY = """
         SELECT worker_id, last_seen,
-        NOW() - last_seen AS lag
+        EXTRACT(EPOCH FROM (NOW() - last_seen)) AS lag
         FROM worker_heartbeat
     """
 SYSTEM_STATS_QUERY = """

@@ -1,78 +1,110 @@
 import { useState } from "react";
+import useSWR, { mutate } from "swr";
+import { v4 as uuidv4 } from "uuid";
 
 import { JobsPageHeader } from "@/features/jobs/header/JobsPageHeader";
 import { IncomingFilesPanel } from "@/features/jobs/incomingFiles/IncomingFilesPanel";
 import { JobHistoryTable } from "@/features/jobs/history/JobHistoryTable";
 import { SchedulePrintModal } from "@/features/jobs/scheduleModal/SchedulePrintModal";
 
-import { JOBS } from "@/mocks/jobs.mock";
-import { PRINTERS } from "@/mocks/printers.mock";
-
-import type { Job } from "@/features/jobs/history/JobHistoryTable";
+import { getJobs, cancelJob, retryJob, submitJob } from "@/services/jobs";
+import { getPrinters } from "@/services/printers";
+import { getFiles } from "@/services/files";
+import type { Job, JobListResponse } from "@/types/job";
+import type { Printer } from "@/types/printer";
 
 import "./Jobs.css";
 
 export default function JobsPage() {
-  const [jobs, setJobs] = useState<Job[]>(JOBS);
   const [showSchedule, setShowSchedule] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
-  //TODO: incoming files should also come from an API, but for now we can hardcode some data to work with.
-  const incoming = [
-    { name: "report.pdf", source: "FileBrowser", status: "READY" },
-    { name: "invoice_batch.pdf", source: "API Upload", status: "READY" },
-  ];
+  const { data, error, isLoading } = useSWR<JobListResponse>(
+    '/jobs/',
+    () => getJobs({ limit: 50 }),
+    { refreshInterval: 10000, keepPreviousData: true }
+  )
 
-  // ───── actions ─────
-  const handleRetry = (job: Job) => {
-    console.log("retry", job);
-  };
+  const { data: printers } = useSWR<Printer[]>('/printers/', getPrinters)
 
-  const handleCancel = (job: Job) => {
-    setJobs((prev) => prev.filter((j) => j.id !== job.id));
-  };
+  const { data: files } = useSWR<string[]>(
+    '/files/',
+    () => getFiles(),
+    { refreshInterval: 30000, keepPreviousData: true }
+  )
+
+  const incoming = (files ?? []).map(name => ({ name, source: "File Storage" }))
+
+  const handleRetry = async (job: Job) => {
+    await retryJob(job.id, uuidv4())
+    mutate('/jobs/')
+  }
+
+  const handleCancel = async (job: Job) => {
+    await cancelJob(job.id, uuidv4())
+    mutate('/jobs/')
+  }
+
+  const handlePrintNow = async (file: { name: string }, printerName: string) => {
+    const printer = printers?.find(p => p.name === printerName)
+    if (!printer) return
+
+    await submitJob({
+      file_name: file.name,
+      file_path: file.name,
+      printer_id: printer.id,
+      client_request_id: uuidv4(),
+    })
+    mutate('/jobs/')
+  }
 
   const handleSchedule = (file: any) => {
     setSelectedFile(file.name);
     setShowSchedule(true);
   };
 
-  const handleConfirmSchedule = (data: any) => {
-    console.log("schedule confirmed", data);
-  };
+  const handleConfirmSchedule = async (data: any) => {
+    const printer = printers?.find(p => p.name === data.printer)
+    if (!printer) return
+
+    await submitJob({
+      file_name: data.fileName,
+      file_path: data.fileName,
+      printer_id: printer.id,
+      client_request_id: uuidv4(),
+      scheduled_at: `${data.date}T${data.time}:00`,
+    })
+    mutate('/jobs/')
+    setShowSchedule(false)
+  }
 
   return (
     <div className="jobsPage">
-
-      {/* header */}
       <JobsPageHeader
-        onRefresh={() => console.log("refresh jobs")}
-        onUpload={() => console.log("upload file")}
+        onRefresh={() => mutate('/jobs/')}
+        onUploadSuccess={() => mutate('/files/')}
       />
 
-      {/* incoming files */}
       <IncomingFilesPanel
         files={incoming}
-        printers={PRINTERS}
-        onPrintNow={(file, printer) =>
-          console.log("print now", file, printer)
-        }
+        printers={printers ?? []}
+        onPrintNow={handlePrintNow}
         onSchedule={handleSchedule}
-        onPreview={(file) => console.log("preview", file)}
+        onPreview={(file) => window.open(`/api/files/${file.name}`, '_blank')}
       />
 
-      {/* history */}
       <JobHistoryTable
-        jobs={jobs}
+        jobs={data?.items ?? []}
+        isLoading={isLoading}
+        error={!!error}
         onRetry={handleRetry}
         onCancel={handleCancel}
       />
 
-      {/* modal */}
       <SchedulePrintModal
         open={showSchedule}
         fileName={selectedFile}
-        printers={PRINTERS}
+        printers={printers ?? []}
         onClose={() => setShowSchedule(false)}
         onConfirm={handleConfirmSchedule}
       />

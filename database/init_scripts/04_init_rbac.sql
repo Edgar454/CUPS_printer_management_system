@@ -8,7 +8,7 @@ CREATE ROLE api_user LOGIN PASSWORD 'api_user_password';
 GRANT CONNECT ON DATABASE postgres TO api_user;
 GRANT USAGE ON SCHEMA public TO api_user;
 
-GRANT SELECT, INSERT, UPDATE ON TABLE public.printers TO api_user;
+GRANT SELECT, INSERT, UPDATE , DELETE ON TABLE public.printers TO api_user;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.print_jobs TO api_user;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.job_events TO api_user;
 GRANT SELECT ON TABLE public.worker_heartbeat TO api_user;

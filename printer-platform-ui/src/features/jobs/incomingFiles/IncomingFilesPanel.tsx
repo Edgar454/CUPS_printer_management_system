@@ -1,12 +1,12 @@
 import "./IncomingFilesPanel.css";
-import { Badge } from "@/components/badge/Badge";
+import { useState } from "react";
 import { Button } from "@/components/btn/Button";
 import type { Printer } from "@/types/printer";
 
+
 interface IncomingFile {
   name: string;
-  source: string;
-  status: string;
+  source?: string;
 }
 
 interface Props {
@@ -24,6 +24,11 @@ export function IncomingFilesPanel({
   onSchedule,
   onPreview,
 }: Props) {
+  const [selectedPrinters, setSelectedPrinters] = useState<Record<string, string>>({});
+
+  const handleSelect = (fileName: string, printer: string) => {
+    setSelectedPrinters((prev) => ({ ...prev, [fileName]: printer }));
+  };
   const onlinePrinters = printers.filter((p) => p.status === "ONLINE");
 
   return (
@@ -41,19 +46,24 @@ export function IncomingFilesPanel({
             </div>
           </div>
 
-          <Badge status={file.status === "READY" ? "SUCCESS" : file.status} />
 
-          <select className="incomingFilesPanel__select">
-            <option>Select Printer</option>
-            {onlinePrinters.map((p) => (
-              <option key={p.id}>{p.name}</option>
-            ))}
-          </select>
+            <select
+              className="incomingFilesPanel__select"
+              value={selectedPrinters[file.name] || ""}
+              onChange={(e) => handleSelect(file.name, e.target.value)}
+            >
+              <option value="">Select Printer</option>
+              {onlinePrinters.map((p) => (
+                <option key={p.id} value={p.name}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
 
           <div className="incomingFilesPanel__actions">
             <Button
               small
-              onClick={() => onPrintNow?.(file, "")}
+              onClick={() => onPrintNow?.(file, selectedPrinters[file.name] || "")}
             >
               Print Now
             </Button>

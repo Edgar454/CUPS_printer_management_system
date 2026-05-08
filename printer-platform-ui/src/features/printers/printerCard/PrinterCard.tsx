@@ -6,16 +6,14 @@ import "./PrinterCard.css";
 interface Props {
   //TODO: Implement printer diagnostics and testing features, then make these callbacks required instead of optional
   printer: Printer;
-  onTest?: (id: number) => void;
-  onEdit?: (id: number) => void;
-  onRemove?: (id: number) => void;
-  onDiagnose?: (id: number) => void;
+  onTest?: (name: string) => void;
+  onRemove?: (name: string) => void;
+  onDiagnose?: (name: string) => void;
 }
 
 export function PrinterCard({
   printer,
   onTest,
-  onEdit,
   onRemove,
   onDiagnose,
 }: Props) {
@@ -36,33 +34,27 @@ export function PrinterCard({
       <div className="printerCard__details">
         <div>
           IP:{" "}
-          <span className="printerCard__mono">{printer.ip}</span>
+          <span className="printerCard__mono">{printer.cups_uri}</span>
         </div>
 
-        <div>Last activity: {printer.lastActivity}</div>
-
-        {printer.queue > 0 && (
-          <div>Queue: {printer.queue} job(s)</div>
+        {printer.queue_count > 0 && (
+          <div>Queue: {printer.queue_count} job(s)</div>
         )}
       </div>
 
       {/* actions */}
       <div className="printerCard__actions">
-        <Button small variant="secondary" onClick={() => onTest?.(printer.id)}>
-          Test Print
+        <Button small variant="secondary" onClick={() => onTest?.(printer.name)}>
+          Test 
         </Button>
 
-        <Button small variant="secondary" onClick={() => onEdit?.(printer.id)}>
-          Edit
-        </Button>
-
-        {printer.status === "OFFLINE" && (
-          <Button small variant="secondary" onClick={() => onDiagnose?.(printer.id)}>
+        {printer.status === "OFFLINE" || printer.status === "ERROR" ? (
+          <Button small variant="secondary" onClick={() => onDiagnose?.(printer.name)}>
             Diagnose
           </Button>
-        )}
+        ): null}
 
-        <Button small variant="danger" onClick={() => onRemove?.(printer.id)}>
+        <Button small variant="danger" onClick={() => onRemove?.(printer.name)}>
           Remove
         </Button>
       </div>

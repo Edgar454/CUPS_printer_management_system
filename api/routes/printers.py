@@ -1,4 +1,5 @@
 import asyncio
+import cups
 from uuid import UUID
 from fastapi import APIRouter, status, Depends, Request , HTTPException
 from fastapi.responses import JSONResponse
@@ -85,7 +86,7 @@ async def create_printer(payload: CreatePrinterRequest, pool=Depends(get_db_pool
     return {**dict(printer), "status": status}
 
 
-@router.post("/printers/{name}/test", response_model=PrinterTestResponse)
+@router.post("/{name}/test", response_model=PrinterTestResponse)
 async def test_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings), cups_conn=Depends(get_cups_conn)):
     try:
         async with pool.acquire() as conn:
@@ -117,7 +118,7 @@ async def test_printer(name: str, pool=Depends(get_db_pool), settings=Depends(ge
         raise HTTPException(status_code=500, detail="Printer test failed")
 
 
-@router.get("/printers/{name}/diagnose", response_model=PrinterDiagnosisResponse)
+@router.get("/{name}/diagnose", response_model=PrinterDiagnosisResponse)
 async def diagnose_printer(name: str, pool=Depends(get_db_pool), settings=Depends(get_settings) , cups_conn=Depends(get_cups_conn)):
     try:
         async with pool.acquire() as conn:
@@ -134,7 +135,11 @@ async def diagnose_printer(name: str, pool=Depends(get_db_pool), settings=Depend
                 "printer": name,
                 "details": str(attrs)
             }
-
+    except cups.IPPError as e:
+        return {
+            "printer": name,
+            "details": f"IPP Error: {e}"
+        }
     except Exception:
         logger.exception("Diagnose failed")
         raise HTTPException(status_code=500, detail="Diagnose failed")
@@ -153,11 +158,11 @@ async def delete_printer(name: str, pool=Depends(get_db_pool), settings=Depends(
     try:
         logger.info(f"Deleting printer {printer_name} from CUPS")
         def _delete_printer(printer_name):
-            with tracer.start_as_current_span("cups.delete_printer") as span:
-                span.set_attribute("printer.name", printer_name)
                 cups_conn = create_cups_connection()
                 cups_conn.deletePrinter(printer_name)
-        await asyncio.to_thread(_delete_printer, printer_name)
+        with tracer.start_as_current_span("cups.delete_printer") as span:
+            span.set_attribute("printer.name", printer_name)
+            await asyncio.to_thread(_delete_printer, printer_name)
         logger.info(f"Printer {printer_name} deleted from CUPS successfully")
     except Exception as e:
         span.set_status(trace.StatusCode.ERROR, str(e))

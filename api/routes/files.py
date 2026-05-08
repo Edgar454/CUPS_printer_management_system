@@ -5,7 +5,7 @@ import os
 
 from fastapi import APIRouter, status, Depends, Request , HTTPException
 from fastapi import UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse , FileResponse
 
 import logging
 
@@ -53,3 +53,25 @@ async def upload_file(file: UploadFile = File(...), settings=Depends(get_setting
         "original_name": original_name,
         "file_path": str(file_path)
     }
+
+
+
+@router.get("/{filename}")
+async def download_file(filename: str, settings=Depends(get_settings)):
+    file_path = Path(settings.FILE_FOLDER) / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # prevent path traversal
+    if not file_path.resolve().is_relative_to(Path(settings.FILE_FOLDER).resolve()):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        status_code=200,
+        headers={
+                "Content-Disposition": f'inline; filename="{filename}"'
+            }
+    )

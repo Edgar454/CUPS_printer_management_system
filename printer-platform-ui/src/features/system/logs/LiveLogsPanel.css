@@ -20,7 +20,7 @@
 
 .liveIndicator {
   font-size: 11px;
-  color: "#22c55e";
+  color: #22c55e;
   fontWeight: 600;
 }
 
@@ -37,16 +37,16 @@
   gap: 10px;
 }
 
-.time {
+.logsPanel__body .time {
   color: #555;
   min-width: 60px;
 }
 
-.type {
+.logsPanel__body .type {
   min-width: 45px;
   font-weight: 600;
 }
 
-.msg {
+.logsPanel__body .msg {
   color: #e5e7eb;
 }

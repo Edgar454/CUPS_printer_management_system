@@ -113,15 +113,22 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION notify_new_print_job()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.status IN ('QUEUED', 'SCHEDULED') THEN
+    -- on insert: notify if QUEUED or SCHEDULED
+    IF TG_OP = 'INSERT' AND NEW.status IN ('QUEUED', 'SCHEDULED') THEN
         PERFORM pg_notify('new_print_job', NEW.id::text);
     END IF;
+
+    -- on update: notify only when transitioning to QUEUED
+    IF TG_OP = 'UPDATE' AND NEW.status = 'QUEUED' AND OLD.status = 'SCHEDULED' THEN
+        PERFORM pg_notify('new_print_job', NEW.id::text);
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trg_notify_new_print_job
-AFTER INSERT ON public.print_jobs
+AFTER INSERT OR UPDATE ON public.print_jobs
 FOR EACH ROW
 EXECUTE FUNCTION notify_new_print_job();
 

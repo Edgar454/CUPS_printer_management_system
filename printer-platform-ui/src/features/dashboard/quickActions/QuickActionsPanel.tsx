@@ -15,7 +15,6 @@ const defaultActions: Action[] = [
   { icon: "⬆", label: "Upload File", sub: "Add file to print" },
   { icon: "⎙", label: "Add Printer", sub: "Register new printer" },
   { icon: "◈", label: "Test Printer", sub: "Check printer status" },
-  { icon: "⊕", label: "Add User", sub: "Create new user" },
   { icon: "◉", label: "System Health", sub: "Check all components" },
 ];
 

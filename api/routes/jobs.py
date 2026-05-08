@@ -3,7 +3,7 @@ from fastapi import APIRouter, status, Depends, Request , HTTPException
 from fastapi.responses import JSONResponse
 from api.utils.queries import (
     GET_JOBS_QUERY , GET_JOB_QUERY , GET_JOB_EVENTS_QUERY , CHECK_JOB_EXISTENCE , CREATE_JOB_QUERY,
-    CANCEL_JOB_QUERY , RETRY_JOB_QUERY
+    CANCEL_JOB_QUERY , RETRY_JOB_QUERY , GET_RECENT_EVENTS_QUERY
 )
 
 from api.models.jobs.job_event import JobEvent
@@ -59,6 +59,11 @@ async def get_jobs(
         logger.error(f"Error fetching jobs: {e}")
         raise HTTPException(status_code=500, detail="Error fetching jobs")
 
+@router.get("/events", response_model=list[JobEvent])
+async def get_recent_events(limit: int = 10, offset: int = 0, pool=Depends(get_db_pool)):
+    result = await pool.fetch(GET_RECENT_EVENTS_QUERY, limit, offset)
+    return [JobEvent(**dict(r)) for r in result]
+
 @router.get("/{id}", response_model=JobSnapshot)
 async def get_job_by_id(id: UUID, pool=Depends(get_db_pool)):
     try:
@@ -74,6 +79,7 @@ async def get_job_by_id(id: UUID, pool=Depends(get_db_pool)):
     except Exception as e:
         logger.exception("Error fetching job")
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
 
 @router.get("/{id}/events", response_model=list[JobEvent])
 async def get_job_events(

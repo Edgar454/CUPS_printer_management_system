@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/badge/Badge";
 import type { Job } from "@/types/job";
+import { timeAgo } from "@/utils/time_features";
+
 import "./RecentJobsPanel.css";
 
 
@@ -38,17 +40,17 @@ export function RecentJobsPanel({ jobs }: Props) {
             <tr key={j.id}>
               <td className="mono">#{j.id}</td>
 
-              <td className="fileCell" title={j.file}>
-                {j.file}
+              <td className="fileCell" title={j.file_name}>
+                {j.file_name}
               </td>
 
-              <td>{j.printer}</td>
+              <td>{j.printer_name}</td>
 
               <td>
                 <Badge status={j.status} />
               </td>
 
-              <td className="muted">{j.time}</td>
+              <td className="muted">{timeAgo(j.created_at)}</td>
             </tr>
           ))}
         </tbody>
