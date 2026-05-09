@@ -66,6 +66,7 @@ services:
       FRONTEND_URL: http://localhost:5174
       OTEL_SERVICE_NAME: cups-api
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      LOG_FILE: '/app/logs/api.log'
       ENV: development
     volumes:
       - shared_files:/files

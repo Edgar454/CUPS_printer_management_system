@@ -13,12 +13,13 @@ from api.tracing import setup_tracing
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
+log_file = os.getenv("LOG_FILE", "/app/logs/api.log")
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/app/logs/api.log'),
+        logging.FileHandler(log_file),
         logging.StreamHandler(sys.stdout)
     ]
 )
