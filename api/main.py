@@ -56,7 +56,7 @@ app.add_middleware(
     allow_origins=[
         "http://frontend:3000",   # Allow local development frontend    
         "http://filebrowser:8080",  # Allow filebrowser to access the API     
-        "http://172.28.0.0/24",         
+        "http://172.28.0.0/24",  #    
         os.getenv("FRONTEND_URL", ""),
     ],
     allow_methods=["GET", "POST", "DELETE", "PUT", "PATCH"],
