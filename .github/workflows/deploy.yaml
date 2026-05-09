@@ -48,8 +48,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          cd api && uv sync
-          uv pip install --system pytest pytest-asyncio httpx testcontainers pydantic-settings
+          cd api && uv pip install --system .
+          cd ..
+          pip install pytest pytest-asyncio httpx testcontainers pydantic-settings
 
       - name: Run integration tests
         run: pytest tests/integration/ -v
