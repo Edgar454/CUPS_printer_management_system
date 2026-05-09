@@ -50,7 +50,6 @@ all: build push run
 # Login to registry
 login:
 	@echo "🔐 Logging in to $(REGISTRY)..."
-	@echo $(GITHUB_ACTOR)
 	@echo $(GITHUB_TOKEN) | docker login ghcr.io -u $(GITHUB_ACTOR) --password-stdin
 	@echo "✅ Logged in"
 
