@@ -50,6 +50,12 @@ jobs:
           pip install uv
           uv pip install --system -r api/pyproject.toml
           uv pip install --system pytest pytest-asyncio httpx testcontainers pydantic-settings
+      
+      - name: Log in to Container Registry
+        run: |
+          export GITHUB_TOKEN=$CONTAINER_REPO_ACCESS_TOKEN
+          export GITHUB_ACTOR=$CONTAINER_REPO_USERNAME
+          make login
 
       - name: Run integration tests
         run: pytest tests/integration/ -v
