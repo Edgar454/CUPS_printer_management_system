@@ -48,8 +48,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install -r api/pyproject.toml
-          pip install pytest pytest-asyncio httpx testcontainers pydantic-settings
+          uv pip install --system -r api/pyproject.toml
+          uv pip install --system pytest pytest-asyncio httpx testcontainers pydantic-settings
 
       - name: Run integration tests
         run: pytest tests/integration/ -v
