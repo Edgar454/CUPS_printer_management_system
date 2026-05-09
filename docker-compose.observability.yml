@@ -1,9 +1,7 @@
 services:
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: ghcr.io/edgar454/otel-collector:latest
     container_name: otel_collector
-    volumes:
-      - ./observability/otel-collector.yaml:/etc/otelcol-contrib/config.yaml
     ports:
       - "4317:4317"   
       - "4318:4318"   
@@ -11,42 +9,27 @@ services:
       - cups_network
 
   tempo:
-    image: grafana/tempo:latest
+    image: ghcr.io/edgar454/otel-collector:latest
     container_name: tempo
-    command: ["-config.file=/etc/tempo.yaml"]
     volumes:
-      - ./observability/tempo.yaml:/etc/tempo.yaml
       - tempo_data:/var/tempo
     networks:
       - cups_network
 
   prometheus:
-    image: prom/prometheus:latest
+    image: ghcr.io/edgar454/prometheus:latest 
     container_name: prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--web.enable-remote-write-receiver'
     volumes:
-      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     networks:
       - cups_network
 
   postgres-exporter:
-    image: ghcr.io/edgar454/pg_exporter:custom 
+    image: ghcr.io/edgar454/postgres-exporter:latest
     container_name: cups_postgres-exporter
     environment:
       PG_EXPORTER_DSN: postgresql://${EXPORTER_USER}:${POSTGRES_EXPORTER_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
       PG_EXPORTER_PORT: 9187
-    command:
-      - '--collector.locks'
-      - '--collector.database'
-      - '--collector.stat'
-      - '--collector.replication'
-      - '--collector.index'
-      - '--collector.statements'
-      - '--collector.tls'
-      - '--collector.exporter'
     restart: unless-stopped
     depends_on:
       postgres:
@@ -55,7 +38,7 @@ services:
       - cups_network
 
   grafana:
-    image: grafana/grafana:latest
+    image: ghcr.io/edgar454/grafana:latest
     container_name: grafana
     environment:
       POSTGRES_USER: ${POSTGRES_GRAFANA_USER:-grafana_user}
@@ -65,8 +48,6 @@ services:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./observability/grafana/datasources:/etc/grafana/provisioning/datasources
     networks:
       - cups_network
 
