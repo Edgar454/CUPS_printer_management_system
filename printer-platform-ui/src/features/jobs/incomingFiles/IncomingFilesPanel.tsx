@@ -1,7 +1,7 @@
 import "./IncomingFilesPanel.css";
 import { useState } from "react";
-import { Button } from "@/components/btn/Button";
 import type { Printer } from "@/types/printer";
+import { FileRow } from "./FileRow";
 
 
 interface IncomingFile {
@@ -36,55 +36,11 @@ export function IncomingFilesPanel({
       <h3 className="incomingFilesPanel__title">Incoming Files</h3>
 
       {files.map((file, i) => (
-        <div key={i} className="incomingFilesPanel__row">
-          <span className="incomingFilesPanel__icon">📄</span>
-
-          <div className="incomingFilesPanel__info">
-            <div className="incomingFilesPanel__name">{file.name}</div>
-            <div className="incomingFilesPanel__source">
-              Source: {file.source}
-            </div>
-          </div>
-
-
-            <select
-              className="incomingFilesPanel__select"
-              value={selectedPrinters[file.name] || ""}
-              onChange={(e) => handleSelect(file.name, e.target.value)}
-            >
-              <option value="">Select Printer</option>
-              {onlinePrinters.map((p) => (
-                <option key={p.id} value={p.name}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-
-          <div className="incomingFilesPanel__actions">
-            <Button
-              small
-              onClick={() => onPrintNow?.(file, selectedPrinters[file.name] || "")}
-            >
-              Print Now
-            </Button>
-
-            <Button
-              small
-              variant="secondary"
-              onClick={() => onSchedule?.(file)}
-            >
-              Schedule
-            </Button>
-
-            <Button
-              small
-              variant="ghost"
-              onClick={() => onPreview?.(file)}
-            >
-              Preview
-            </Button>
-          </div>
-        </div>
+         <FileRow 
+            file={file} id={i} onlinePrinters={onlinePrinters}
+            selectedPrinters={selectedPrinters} onSelectPrinter={handleSelect}
+            onPrintNow={onPrintNow} onSchedule={onSchedule} onPreview={onPreview}
+          />
       ))}
     </div>
   );

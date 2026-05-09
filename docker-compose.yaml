@@ -15,8 +15,7 @@ services:
       WORKER_PASSWORD: ${PIPELINE_PASSWORD:-pipeline_password}
       GRAFANA_USER_PASSWORD: ${GRAFANA_USER_PASSWORD:-grafana_user_password}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/init_scripts:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/18/docker 
     expose:
       - "5432"
     healthcheck:

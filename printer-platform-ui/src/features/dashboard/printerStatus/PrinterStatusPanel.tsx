@@ -10,7 +10,6 @@ export function PrinterStatusPanel() {
   const { data: printers, error, isLoading } = useSWR<Printer[]>('/printers/', getPrinters, {
     refreshInterval: 10000,
   })
-
   return (
     <div className="printer-panel">
       <div className="printer-header">

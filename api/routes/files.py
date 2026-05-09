@@ -75,3 +75,21 @@ async def download_file(filename: str, settings=Depends(get_settings)):
                 "Content-Disposition": f'inline; filename="{filename}"'
             }
     )
+
+@router.delete("/{filename}")
+async def delete_file(filename: str, settings=Depends(get_settings)):
+    file_path = Path(settings.FILE_FOLDER) / filename
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # prevent path traversal
+    if not file_path.resolve().is_relative_to(Path(settings.FILE_FOLDER).resolve()):
+        raise HTTPException(status_code=400, detail="Invalid path")
+
+    try:
+        file_path.unlink()
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to delete file")
+
+    return {"message": f"{filename} deleted successfully"}

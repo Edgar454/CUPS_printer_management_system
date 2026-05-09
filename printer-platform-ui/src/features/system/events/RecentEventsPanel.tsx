@@ -2,8 +2,7 @@ import "./RecentEventsPanel.css";
 import useSWR from "swr";
 import { fetchRecentEvents } from "@/services/jobs";
 import type { JobEvent } from "@/types/job";
-
-
+import { timeAgo } from "@/utils/time_features";
 
 const eventConfig: Record<string, { icon: string; color: string }> = {
   CREATED:            { icon: "⊕", color: "#22c55e" },
@@ -17,13 +16,6 @@ const eventConfig: Record<string, { icon: string; color: string }> = {
   RETRY:              { icon: "↺", color: "#f59e0b" },
 }
 
-function timeAgo(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (diff < 60) return `${diff}s ago`
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  return `${Math.floor(diff / 86400)}d ago`
-}
 
 export function RecentEventsPanel() {
   const { data: events, error, isLoading } = useSWR<JobEvent[]>(
@@ -35,27 +27,36 @@ export function RecentEventsPanel() {
   return (
     <div className="eventsPanel">
       <h3>Recent Events</h3>
+      <div className="eventsPanel__list">
+        {isLoading && <div className="eventsPanel__loading">⏳ Loading...</div>}
+        {error && <div className="eventsPanel__error">⚠️ Failed to load events</div>}
 
-      {isLoading && <div className="eventsPanel__loading">⏳ Loading...</div>}
-      {error && <div className="eventsPanel__error">⚠️ Failed to load events</div>}
-
-      {!isLoading && !error && (events ?? []).map((e) => {
-        const config = eventConfig[e.event_type] ?? { icon: "◈", color: "#999" }
-        return (
-          <div key={e.id} className="eventRow">
-            <div className="icon" style={{ background: config.color + "20", color: config.color }}>
-              {config.icon}
-            </div>
-            <div className="content">
-              <div className="msg">
-                {e.event_type.replace(/_/g, " ")}
-                {e.error && <span className="error"> — {e.error}</span>}
+        {!isLoading && !error && (events ?? []).map((e) => {
+          const config = eventConfig[e.event_type] ?? { icon: "◈", color: "#999" }
+          return (
+            <div key={e.id} className="eventRow">
+              <div className="icon" style={{ background: config.color + "20", color: config.color }}>
+                {config.icon}
               </div>
-              <div className="time">{timeAgo(e.created_at)}</div>
+              <div className="content">
+                <div className="msg">
+                  {e.event_type.replace(/_/g, " ")}
+                  {e.error && <span className="error"> — {e.error}</span>}
+                </div>
+                <div className="time">
+                  <span
+                    className="jobId"
+                  >
+                    #{e.job_id.toString()}
+                  </span>
+                  {" · "}
+                  {timeAgo(e.created_at)}
+                </div>
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }

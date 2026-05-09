@@ -11,3 +11,6 @@ export const uploadFile = (file: File) => {
     headers: { 'Content-Type': 'multipart/form-data' }
   }).then(r => r.data)
 }
+
+export const deleteFile = (filename: string) =>
+  api.delete(`/files/${filename}`).then(r => r.data)

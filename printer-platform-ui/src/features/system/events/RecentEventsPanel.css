@@ -1,14 +1,24 @@
 .eventsPanel {
+  display: flex;
+  flex-direction: column;
   background: #fff;
   border: 1px solid #eee;
   border-radius: 14px;
   padding: 20px 22px;
+  max-height: 600px;
 }
 
 .eventsPanel h3 {
   margin: 0 0 16px;
   font-size: 14px;
   font-weight: 600;
+  flex-shrink: 0;
+}
+
+.eventsPanel__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .eventRow {
@@ -25,6 +35,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.jobId {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: #3b82f6;
+  cursor: pointer;
+}
+
+.jobId:hover {
+  text-decoration: underline;
 }
 
 .msg {

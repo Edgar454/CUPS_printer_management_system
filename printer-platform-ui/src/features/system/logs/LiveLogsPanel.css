@@ -1,15 +1,19 @@
 .logsPanel {
+  display: flex;
+  flex-direction: column;
   background: #0f1117;
   border: 1px solid #222;
   border-radius: 14px;
   padding: 20px 22px;
   color: #bbb;
+  max-height: 600px;  /* ← cap the panel */
 }
 
 .logsPanel__header {
   display: flex;
   justify-content: space-between;
   margin-bottom: 14px;
+  flex-shrink: 0;
 }
 
 .logsPanel__header h3 {
@@ -24,8 +28,10 @@
   fontWeight: 600;
 }
 
+
 .logsPanel__body {
-  height: 280px;
+  flex: 1;
+  min-height: 0;  /* critical — without this flex won't shrink below content size */
   overflow-y: auto;
   font-family: "JetBrains Mono", monospace;
   font-size: 11px;

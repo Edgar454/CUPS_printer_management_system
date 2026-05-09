@@ -1,12 +1,11 @@
 import "./JobHistoryTable.css";
-import { Badge } from "@/components/badge/Badge";
-import { Button } from "@/components/btn/Button";
 import type { Job } from "@/types/job";
-import { timeAgo } from "@/utils/time_features";
+import { JobRow } from "./JobRowCard";
 
 interface Props {
   jobs: Job[];
   isLoading?: boolean;
+  limit?: number ;
   error?: boolean;
   onRetry?: (job: Job) => void;
   onCancel?: (job: Job) => void;
@@ -36,26 +35,7 @@ export function JobHistoryTable({ jobs, isLoading, error, onRetry, onCancel }: P
             <tr><td colSpan={7} className="muted">⚠️ Failed to load jobs</td></tr>
           )}
           {!isLoading && !error && jobs.map((job) => (
-            <tr key={job.id}>
-              <td className="mono">#{job.id.slice(0, 8)}</td>
-              <td className="fileCell">{job.file_name}</td>
-              <td>{job.printer_name ?? "—"}</td>
-              <td><Badge status={job.status} /></td>
-              <td className="muted">{job.retry_count}</td>
-              <td className="muted">{timeAgo(job.created_at)}</td>
-              <td className="actions">
-                {job.status === "FAILED" && (
-                  <Button small variant="secondary" onClick={() => onRetry?.(job)}>
-                    Retry
-                  </Button>
-                )}
-                {(job.status === "SCHEDULED" || job.status === "QUEUED") && (
-                  <Button small variant="danger" onClick={() => onCancel?.(job)}>
-                    Cancel
-                  </Button>
-                )}
-              </td>
-            </tr>
+            <JobRow job={job} onRetry={onRetry} onCancel={onCancel}/>
           ))}
         </tbody>
       </table>
