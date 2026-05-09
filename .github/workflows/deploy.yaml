@@ -97,7 +97,7 @@ jobs:
         run: ssh $VM_USERNAME@$VM_PUBLIC_IP "echo 'VM reachable ✅'"
 
       - name: Prepare VM folder
-        run: ssh $VM_USERNAME@$VM_PUBLIC_IP "rm -rf $VM_REPO_WORK_FOLDER && mkdir -p $VM_REPO_WORK_FOLDER"
+        run: ssh $VM_USERNAME@$VM_PUBLIC_IP "sudo rm -rf $VM_REPO_WORK_FOLDER && mkdir -p $VM_REPO_WORK_FOLDER"
 
       - name: Copy required files
         run: |
