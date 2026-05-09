@@ -82,4 +82,4 @@ jobs:
 
 
       - name: Deploy stack on VM
-        run: ssh $VM_USERNAME@$VM_PUBLIC_IP "cd $VM_REPO_WORK_FOLDER && docker compose down && make run && echo 'Stack deployed ✅'"
+        run: ssh $VM_USERNAME@$VM_PUBLIC_IP "cd $VM_REPO_WORK_FOLDER && make down && make run && echo 'Stack deployed ✅'"
