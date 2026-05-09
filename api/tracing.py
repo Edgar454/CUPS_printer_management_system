@@ -27,4 +27,3 @@ def get_trace_context() -> str:
     carrier = {}
     propagate.inject(carrier)
     return json.dumps(carrier)
-
