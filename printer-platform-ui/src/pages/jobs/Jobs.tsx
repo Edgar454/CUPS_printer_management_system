@@ -74,16 +74,20 @@ export default function JobsPage() {
     const printer = printers?.find(p => p.name === data.printer)
     if (!printer) return
 
+    // convert local datetime to UTC ISO string
+    const localDate = new Date(`${data.date}T${data.time}:00`)
+    const utcScheduledAt = localDate.toISOString()  
+
     await submitJob({
       file_name: data.fileName,
       file_path: data.fileName,
       printer_id: printer.id,
       client_request_id: uuidv4(),
-      scheduled_at: `${data.date}T${data.time}:00`,
+      scheduled_at: utcScheduledAt,
     })
-    toast.success(`Job Scheduled — ${data.fileName} sent to ${data.printer}`)
     mutate('/jobs/')
     setShowSchedule(false)
+    toast.success(`Job scheduled — ${data.fileName} at ${data.time}`)
   }
 
   return (
