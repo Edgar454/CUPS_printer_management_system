@@ -4,6 +4,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
+from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
 import os
 import json
 
@@ -22,6 +23,9 @@ def setup_tracing():
     provider = TracerProvider(resource=resource)
     provider.add_span_processor(BatchSpanProcessor(exporter))
     trace.set_tracer_provider(provider)
+
+    AsyncPGInstrumentor().instrument()
+
 
 class DictGetter(DefaultGetter):
     def get(self, carrier, key):
