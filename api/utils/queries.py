@@ -201,6 +201,6 @@ SYSTEM_STATS_QUERY = """
 QUEUE_METRICS_QUERY = """
     SELECT 
         COUNT(*) FILTER ( WHERE status = 'QUEUED') AS queued,
-        COUNT(*) FILTER ( WHERE status = 'SCHEDULED' AND scheduled_at <= NOW() ) AS scheduled
+        COUNT(*) FILTER ( WHERE status = 'SCHEDULED' AND scheduled_at >= NOW() ) AS scheduled
     FROM print_jobs;
 """

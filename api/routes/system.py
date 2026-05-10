@@ -80,11 +80,10 @@ async def system_stats(pool=Depends(get_db_pool)):
         logger.exception("Stats failed")
         raise HTTPException(status_code=500, detail="Error fetching stats")
 
-@router.get("/queue")
-async def queue_metrics(pool=Depends(get_db_pool) , response_model=QueueStats):
+@router.get("/queue", response_model=QueueStats)
+async def queue_metrics(pool=Depends(get_db_pool) ):
     try:
         row = await pool.fetchrow(QUEUE_METRICS_QUERY)
-
         return QueueStats(**dict(row))
 
     except Exception:
