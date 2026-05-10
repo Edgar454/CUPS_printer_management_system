@@ -9,7 +9,7 @@ services:
       - cups_network
 
   tempo:
-    image: ghcr.io/edgar454/otel-collector:latest
+    image: ghcr.io/edgar454/tempo:latest
     container_name: tempo
     volumes:
       - tempo_data:/var/tempo
