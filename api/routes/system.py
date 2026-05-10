@@ -6,6 +6,7 @@ from api.utils.queries import (
 )
 from api.models.system.worker_status import WorkerStatus
 from api.models.system.system_stats_response import SystemStats
+from api.models.system.queue_metrics_response import QueueStats
 from api.utils.route_utils import get_db_pool , get_settings , get_cups_conn
 
 import subprocess
@@ -80,14 +81,11 @@ async def system_stats(pool=Depends(get_db_pool)):
         raise HTTPException(status_code=500, detail="Error fetching stats")
 
 @router.get("/queue")
-async def queue_metrics(pool=Depends(get_db_pool)):
+async def queue_metrics(pool=Depends(get_db_pool) , response_model=QueueStats):
     try:
         row = await pool.fetchrow(QUEUE_METRICS_QUERY)
 
-        return {
-            "queued": row["queued"],
-            "ready_to_queue": row["ready_to_queue"]
-        }
+        return QueueStats(**dict(row))
 
     except Exception:
         logger.exception("Queue metrics failed")
