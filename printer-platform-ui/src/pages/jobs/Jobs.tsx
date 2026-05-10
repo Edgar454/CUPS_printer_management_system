@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
 import { v4 as uuidv4 } from "uuid";
+import toast from 'react-hot-toast';
 
 import { JobsPageHeader } from "@/features/jobs/header/JobsPageHeader";
 import { IncomingFilesPanel } from "@/features/jobs/incomingFiles/IncomingFilesPanel";
@@ -45,9 +46,13 @@ export default function JobsPage() {
     mutate('/jobs/')
   }
 
+
   const handlePrintNow = async (file: { name: string }, printerName: string) => {
     const printer = printers?.find(p => p.name === printerName)
-    if (!printer) return
+    if (!printer) {
+      toast.error("Please select a printer first")
+      return
+    }
 
     await submitJob({
       file_name: file.name,
@@ -55,7 +60,9 @@ export default function JobsPage() {
       printer_id: printer.id,
       client_request_id: uuidv4(),
     })
-    mutate('/jobs/')
+
+  toast.success(`Job submitted — ${file.name} sent to ${printerName}`)
+  mutate('/jobs/')
   }
 
   const handleSchedule = (file: any) => {
@@ -74,6 +81,7 @@ export default function JobsPage() {
       client_request_id: uuidv4(),
       scheduled_at: `${data.date}T${data.time}:00`,
     })
+    toast.success(`Job Scheduled — ${data.fileName} sent to ${data.printer}`)
     mutate('/jobs/')
     setShowSchedule(false)
   }

@@ -43,7 +43,7 @@ export function StatsGrid() {
     },
     {
       label: "Scheduled",
-      value: queue?.queued ?? 0,
+      value: queue?.ready_to_queue ?? 0,
       sub: "Upcoming jobs",
       accent: "#f59e0b",
       icon: "◷"

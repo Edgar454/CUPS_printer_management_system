@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { useState } from "react";
+import { Toaster } from 'react-hot-toast';
 
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { Topbar } from "@/components/topbar/Topbar";
@@ -22,6 +23,7 @@ export function MainLayout() {
         </div>
 
         <Footer />
+        <Toaster position="top-right" />
       </div>
     </div>
   );

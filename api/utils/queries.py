@@ -195,7 +195,8 @@ SYSTEM_STATS_QUERY = """
         COUNT(*) FILTER (WHERE status = 'COMPLETED') AS completed,
         COUNT(*) FILTER (WHERE status = 'FAILED') AS failed,
         COUNT(*) FILTER (WHERE status = 'PROCESSING') AS processing
-    FROM print_jobs;
+    FROM print_jobs
+    WHERE created_at >= date_trunc('day' , NOW());
 """
 QUEUE_METRICS_QUERY = """
     SELECT 
