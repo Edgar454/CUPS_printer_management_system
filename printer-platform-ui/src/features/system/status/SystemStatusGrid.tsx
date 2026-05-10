@@ -26,7 +26,7 @@ export function SystemStatusGrid() {
     },
     { 
       label: "Queue Size", 
-      value: queue ? String(queue.queued + queue.ready_to_queue) : "—",
+      value: queue ? String(queue.queued + queue.scheduled) : "—",
       healthy: true
     },
     { 
