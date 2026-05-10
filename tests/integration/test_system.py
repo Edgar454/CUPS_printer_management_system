@@ -22,7 +22,7 @@ async def test_queue_metrics(client):
     assert response.status_code == 200
     data = response.json()
     assert "queued" in data
-    assert "ready_to_queue" in data
+    assert "scheduled" in data
 
 async def test_worker_status(client):
     response = await client.get("/system/workers")
