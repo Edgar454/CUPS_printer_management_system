@@ -143,6 +143,7 @@ services:
   
   dummy_printer:
     image: ghcr.io/edgar454/dummy-printer:latest
+    hostname: dummy_printer.local
     container_name: dummy_printer
     volumes:
       - ./dummy_printer/jobs:/jobs
