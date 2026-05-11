@@ -101,6 +101,8 @@ This provides:
 * easier debugging and recovery
 * complete workflow visibility
 
+![Architecture Diagram](./assets/cups_database.jpg)
+
 ---
 
 ### Fast Dispatch Without Extra Infrastructure
